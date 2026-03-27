@@ -1,0 +1,5 @@
+repositories:
+  src/KinectV1-Ros2:
+    type: git
+    url: git@github.com:felipedruzian/KinectV1-Ros2.git
+    version: ros2-jazzy-talus

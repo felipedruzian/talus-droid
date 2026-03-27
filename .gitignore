@@ -1,1 +1,8 @@
+build/
+install/
+log/
 __pycache__/
+*.pyc
+.venv/
+.vscode/
+src/KinectV1-Ros2
