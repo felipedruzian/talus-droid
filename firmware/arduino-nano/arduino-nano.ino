@@ -26,6 +26,9 @@ const int BUZZER_PIN = 11;
 const int HALL_L = 2;
 const int HALL_R = 3;
 
+const bool INVERT_LEFT_MOTOR = false;
+const bool INVERT_RIGHT_MOTOR = true;
+
 const uint8_t MPU6050_ADDR = 0x68;
 const uint8_t MPU6050_WHO_AM_I = 0x75;
 const uint8_t MPU6050_PWR_MGMT_1 = 0x6B;
@@ -105,6 +108,11 @@ void stopBase() {
   cmdL = 0;
   cmdR = 0;
   hornEnabled = false;
+}
+
+int normalizeMotorCommand(int value, bool invert) {
+  int clamped = constrain(value, -255, 255);
+  return invert ? -clamped : clamped;
 }
 
 void emitError(const char *code, const char *detail) {
@@ -333,8 +341,8 @@ void applyLine(const char *line) {
   }
 
   if (sscanf(line, "DRV %ld %ld", &left, &right) == 2) {
-    cmdL = constrain((int)left, -255, 255);
-    cmdR = constrain((int)right, -255, 255);
+    cmdL = normalizeMotorCommand((int)left, INVERT_LEFT_MOTOR);
+    cmdR = normalizeMotorCommand((int)right, INVERT_RIGHT_MOTOR);
     lastCmdMs = millis();
     driveTimedOut = false;
     return;
