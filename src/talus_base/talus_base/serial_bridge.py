@@ -38,10 +38,10 @@ class TalusBaseBridge(Node):
         self.declare_parameter("baseline", 0.19)
         self.declare_parameter("v_max", 0.50)
         self.declare_parameter("pwm_max", 255)
-        self.declare_parameter("serial_boot_wait", 0.4)
+        self.declare_parameter("serial_boot_wait", 1.2)
         self.declare_parameter("serial_timeout", 0.05)
         self.declare_parameter("drive_keepalive", 0.10)
-        self.declare_parameter("handshake_timeout", 2.0)
+        self.declare_parameter("handshake_timeout", 3.5)
         self.declare_parameter("reconnect_backoff", 1.0)
         self.declare_parameter("enable_status_beeps", True)
         self.declare_parameter("beep_on_first_connect", 1)
@@ -94,7 +94,6 @@ class TalusBaseBridge(Node):
                     write_timeout=1.0,
                 )
                 time.sleep(self.serial_boot_wait)
-                serial_port.reset_input_buffer()
                 serial_port.reset_output_buffer()
 
                 fw_description = self._perform_handshake(serial_port)
@@ -128,11 +127,15 @@ class TalusBaseBridge(Node):
                 time.sleep(self.reconnect_backoff)
 
     def _perform_handshake(self, serial_port: serial.Serial) -> str:
-        serial_port.write(b"PING\n")
-        serial_port.flush()
-
         deadline = time.monotonic() + self.handshake_timeout
+        next_ping_at = 0.0
         while rclpy.ok() and time.monotonic() < deadline:
+            now = time.monotonic()
+            if now >= next_ping_at:
+                serial_port.write(b"PING\n")
+                serial_port.flush()
+                next_ping_at = now + 0.5
+
             raw = serial_port.readline()
             if not raw:
                 continue

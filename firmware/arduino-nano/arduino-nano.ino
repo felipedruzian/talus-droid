@@ -407,6 +407,8 @@ void setup() {
     triggerBeepPattern(2);
     emitError("IMU_INIT", "failed");
   }
+
+  emitPong();
 }
 
 void loop() {
