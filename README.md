@@ -91,6 +91,7 @@ Perfis disponiveis:
 - `slam`: RTAB-Map em launch separado
 
 O script detecta joystick e Kinect em modo `auto` e nao sobe esses subsistemas se os devices nao estiverem presentes.
+No startup por `systemd`, o arquivo `talus-bringup.env` tambem pode definir `TALUS_DEVICE_SETTLE_SECS` para aguardar alguns segundos antes da deteccao de USB.
 
 ### Startup opt-in com systemd
 

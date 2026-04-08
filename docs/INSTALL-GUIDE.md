@@ -293,6 +293,8 @@ Arquivos:
 - `systemd/talus-bringup.env`
 - `scripts/install-systemd-service`
 
+O template atual evita depender de rede no boot e usa `TALUS_DEVICE_SETTLE_SECS` para esperar a enumeracao inicial de USB antes da deteccao automatica de joystick/Kinect.
+
 Instalar:
 
 ```bash

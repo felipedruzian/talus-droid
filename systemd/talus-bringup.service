@@ -1,7 +1,6 @@
 [Unit]
 Description=Talus-Droid ROS 2 bringup
-After=network-online.target
-Wants=network-online.target
+After=multi-user.target
 
 [Service]
 Type=simple
