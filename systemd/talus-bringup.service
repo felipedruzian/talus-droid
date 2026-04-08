@@ -1,0 +1,19 @@
+[Unit]
+Description=Talus-Droid ROS 2 bringup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=felip
+WorkingDirectory=/home/felip/talus-droid
+EnvironmentFile=/home/felip/talus-droid/systemd/talus-bringup.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/felip/talus-droid/scripts/talus-up
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

@@ -9,10 +9,14 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>joy</exec_depend>
+  <exec_depend>imu_filter_madgwick</exec_depend>
+  <exec_depend>kinect_ros2</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>talus_base</exec_depend>
   <exec_depend>teleop_twist_joy</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>rtabmap_launch</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

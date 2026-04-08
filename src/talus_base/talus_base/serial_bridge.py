@@ -46,6 +46,9 @@ class TalusBaseBridge(Node):
         self.declare_parameter("enable_status_beeps", True)
         self.declare_parameter("beep_on_first_connect", 1)
         self.declare_parameter("beep_on_reconnect", 3)
+        self.declare_parameter("imu_frame_id", "imu_link")
+        self.declare_parameter("imu_angular_velocity_covariance", 0.02)
+        self.declare_parameter("imu_linear_acceleration_covariance", 0.04)
         self.declare_parameter("debug", False)
 
         self.port = self.get_parameter("port").value
@@ -61,6 +64,13 @@ class TalusBaseBridge(Node):
         self.enable_status_beeps = self.get_parameter("enable_status_beeps").value
         self.beep_on_first_connect = self.get_parameter("beep_on_first_connect").value
         self.beep_on_reconnect = self.get_parameter("beep_on_reconnect").value
+        self.imu_frame_id = self.get_parameter("imu_frame_id").value
+        self.imu_angular_velocity_covariance = float(
+            self.get_parameter("imu_angular_velocity_covariance").value
+        )
+        self.imu_linear_acceleration_covariance = float(
+            self.get_parameter("imu_linear_acceleration_covariance").value
+        )
         self.debug = self.get_parameter("debug").value
 
         self.ser: Optional[serial.Serial] = None
@@ -70,7 +80,8 @@ class TalusBaseBridge(Node):
         self.last_drive_send_time = 0.0
         self.ever_connected = False
 
-        self.pub_imu = self.create_publisher(Imu, "imu/raw", 10)
+        self.pub_imu_raw = self.create_publisher(Imu, "imu/raw", 10)
+        self.pub_imu_data_raw = self.create_publisher(Imu, "imu/data_raw", 10)
         self.pub_left_ticks = self.create_publisher(Int32, "wheel/left_ticks", 10)
         self.pub_right_ticks = self.create_publisher(Int32, "wheel/right_ticks", 10)
 
@@ -244,7 +255,7 @@ class TalusBaseBridge(Node):
 
             msg = Imu()
             msg.header.stamp = self.get_clock().now().to_msg()
-            msg.header.frame_id = "imu_link"
+            msg.header.frame_id = self.imu_frame_id
             msg.linear_acceleration.x = float(parts[1])
             msg.linear_acceleration.y = float(parts[2])
             msg.linear_acceleration.z = float(parts[3])
@@ -252,7 +263,20 @@ class TalusBaseBridge(Node):
             msg.angular_velocity.y = float(parts[5])
             msg.angular_velocity.z = float(parts[6])
             msg.orientation_covariance[0] = -1.0
-            self.pub_imu.publish(msg)
+            msg.angular_velocity_covariance[0] = self.imu_angular_velocity_covariance
+            msg.angular_velocity_covariance[4] = self.imu_angular_velocity_covariance
+            msg.angular_velocity_covariance[8] = self.imu_angular_velocity_covariance
+            msg.linear_acceleration_covariance[0] = (
+                self.imu_linear_acceleration_covariance
+            )
+            msg.linear_acceleration_covariance[4] = (
+                self.imu_linear_acceleration_covariance
+            )
+            msg.linear_acceleration_covariance[8] = (
+                self.imu_linear_acceleration_covariance
+            )
+            self.pub_imu_raw.publish(msg)
+            self.pub_imu_data_raw.publish(msg)
             return
 
         if line.startswith("ENC "):

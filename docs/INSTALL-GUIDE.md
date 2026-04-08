@@ -17,6 +17,13 @@ Nesta branch, o stack da base tambem foi reorganizado em dois pacotes ROS 2:
 - `talus_base`: bridge serial e runtime da base
 - `talus_bringup`: launch/config de joystick + teleop + bridge
 
+O `talus_bringup` agora inclui:
+
+- bringup `base`, `teleop`, `floor_test`, `kinect` e `slam`
+- filtro `imu_filter_madgwick`
+- script operacional `scripts/talus-up`
+- template de startup opt-in com `systemd`
+
 O fluxo oficial de comando da base passa a ser:
 
 ```text
@@ -223,7 +230,10 @@ command -v arduino-cli
 ```bash
 sudo apt install -y \
   ros-jazzy-joy \
+  ros-jazzy-imu-filter-madgwick \
   ros-jazzy-teleop-twist-joy \
+  ros-jazzy-tf2-ros \
+  ros-jazzy-rtabmap-launch \
   ros-jazzy-twist-mux
 ```
 
@@ -251,14 +261,63 @@ Terminal 2:
 ros2 topic echo /joy
 ```
 
-### Teleop padrao da base
+### Bringup de teste no chao
 
 ```bash
 cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source ~/talus-droid/install/setup.bash
-ros2 launch talus_bringup base_teleop.launch.py
+ros2 launch talus_bringup floor_test.launch.py
 ```
+
+### Script unico de operacao
+
+```bash
+cd ~/talus-droid
+./scripts/talus-up floor_test
+```
+
+Perfis suportados:
+
+- `floor_test`
+- `base`
+- `teleop`
+- `kinect`
+- `slam`
+
+### Startup opt-in com systemd
+
+Arquivos:
+
+- `systemd/talus-bringup.service`
+- `systemd/talus-bringup.env`
+- `scripts/install-systemd-service`
+
+Instalar:
+
+```bash
+cd ~/talus-droid
+./scripts/install-systemd-service
+```
+
+Ativar/desativar:
+
+```bash
+sudo systemctl enable talus-bringup.service
+sudo systemctl disable talus-bringup.service
+```
+
+### IMU filtrada
+
+O bridge publica `imu/raw` e `imu/data_raw`.
+
+O `floor_test.launch.py` e o `base.launch.py` tambem sobem `imu_filter_madgwick`, que publica `imu/data`.
+
+Frames usados nesta fase:
+
+- `base_link`
+- `imu_link`
+- `camera_link`
 
 ### Firmware novo da base
 
@@ -692,5 +751,5 @@ Warning não bloqueante. Os nós continuam publicando imagem e `camera_info`, ma
 1. subir RGB + depth simultaneamente por vários minutos
 2. gravar um `ros2 bag` curto com os tópicos do Kinect
 3. testar assinatura dos tópicos a partir de outro computador na LAN
-4. subir Kinect junto com `ros2 launch talus_bringup base_teleop.launch.py`
+4. subir Kinect junto com `ros2 launch talus_bringup floor_test.launch.py enable_kinect:=true`
 5. só depois avançar para SLAM/percepção

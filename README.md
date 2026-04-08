@@ -4,7 +4,7 @@ Plataforma experimental de robô de serviço baseada em **Raspberry Pi + Arduino
 
 Este repositório representa o estado **mínimo restaurado e validado** do ambiente usado para retomar o ponto funcional do TCC1 e preparar os próximos testes do TCC2.
 
-O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a base tambem foi reorganizada em pacotes ROS 2 (`talus_base` e `talus_bringup`) com um contrato serial novo e unico entre Raspberry Pi e Arduino Nano. Essa refatoracao ainda precisa de validacao completa em hardware.
+O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a base tambem foi reorganizada em pacotes ROS 2 (`talus_base` e `talus_bringup`) com um contrato serial novo e unico entre Raspberry Pi e Arduino Nano, um bringup em camadas para testes de chao e um filtro de IMU no padrao ROS.
 
 ## Estado atual validado
 
@@ -71,6 +71,49 @@ source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
 
+## Bringup operacional
+
+### Script unico
+
+O ponto de entrada operacional agora e:
+
+```bash
+cd ~/talus-droid
+./scripts/talus-up floor_test
+```
+
+Perfis disponiveis:
+
+- `floor_test`: base + IMU filtrada + teleop opcional + Kinect opcional
+- `base`: bridge serial + TF minimo + filtro de IMU
+- `teleop`: joystick + `teleop_twist_joy`
+- `kinect`: Kinect unificado
+- `slam`: RTAB-Map em launch separado
+
+O script detecta joystick e Kinect em modo `auto` e nao sobe esses subsistemas se os devices nao estiverem presentes.
+
+### Startup opt-in com systemd
+
+Arquivos versionados:
+
+- [talus-bringup.service](/home/felip/repos/talus-droid/systemd/talus-bringup.service)
+- [talus-bringup.env](/home/felip/repos/talus-droid/systemd/talus-bringup.env)
+- [install-systemd-service](/home/felip/repos/talus-droid/scripts/install-systemd-service)
+
+Instalacao no `raspi`:
+
+```bash
+cd ~/talus-droid
+./scripts/install-systemd-service
+```
+
+Ativar/desativar no boot:
+
+```bash
+sudo systemctl enable talus-bringup.service
+sudo systemctl disable talus-bringup.service
+```
+
 ## Controle do robô
 
 ### Fluxo oficial de comando da base
@@ -106,14 +149,33 @@ source install/setup.bash
 ros2 run talus_base talus_base_bridge
 ```
 
-### Teleop padrao da base
+### Bringup de teste no chao
 
 ```bash
 cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
-ros2 launch talus_bringup base_teleop.launch.py
+ros2 launch talus_bringup floor_test.launch.py
 ```
+
+### Teleop legado da base
+
+O launch `base_teleop.launch.py` continua existindo como wrapper de compatibilidade para o `floor_test` sem Kinect.
+
+### IMU no padrao ROS
+
+O bridge publica:
+
+- `/imu/raw`
+- `/imu/data_raw`
+
+O `talus_bringup` sobe `imu_filter_madgwick` para publicar a IMU filtrada em `/imu/data`.
+
+Frames esperados:
+
+- `base_link`
+- `imu_link`
+- `camera_link`
 
 ### Firmware do Arduino Nano
 
@@ -140,6 +202,10 @@ O buzzer em `D11` usa uma tabela curta de status:
 - `2 beeps curtos`: IMU indisponivel, mas base ainda controlavel
 - `3 beeps curtos`: falha serial ou reconexao
 - `1 beep longo`: timeout de drive ou parada de seguranca
+
+### Wiring
+
+As ligacoes atuais da base estao documentadas em [WIRING.md](/home/felip/repos/talus-droid/docs/WIRING.md).
 
 ## Kinect v1
 

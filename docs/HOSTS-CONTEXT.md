@@ -81,6 +81,10 @@ Pacotes confirmados no overlay do `raspi`:
 
 - a implementacao em desenvolvimento usa o pacote ROS `talus_base`
 - o bring-up padrao de teleop usa `talus_bringup`
+- o script operacional principal no `raspi` passa a ser `~/talus-droid/scripts/talus-up`
+- o perfil principal para testes de chao e `floor_test`
+- o startup opt-in fica modelado por `~/talus-droid/systemd/talus-bringup.service`
+- o arquivo de toggles do service fica em `~/talus-droid/systemd/talus-bringup.env`
 - o sketch oficial do Nano fica em `~/talus-droid/firmware/arduino-nano/arduino-nano.ino`
 - o contrato serial alvo atual entre Pi e Nano e:
   - `PING`
@@ -93,6 +97,9 @@ Pacotes confirmados no overlay do `raspi`:
   - `ERR <code> <detail>`
 - buzzer do Nano ligado em `D11`
 - encoder esquerdo apresentou comportamento suspeito nos testes anteriores e nao deve ser tratado como bloqueador desta fase
+- a IMU crua sai em `/imu/raw` e `/imu/data_raw`
+- a IMU filtrada alvo do bringup sai em `/imu/data`
+- o `talus_bringup` ainda precisa receber os offsets reais de `base_link -> imu_link` e `base_link -> camera_link`
 
 ## RTAB-Map
 

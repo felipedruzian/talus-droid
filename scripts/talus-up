@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROFILE="${1:-${TALUS_PROFILE:-floor_test}}"
+ENABLE_TELEOP="${TALUS_ENABLE_TELEOP:-auto}"
+ENABLE_KINECT="${TALUS_ENABLE_KINECT:-auto}"
+SERIAL_PORT="${TALUS_SERIAL_PORT:-/dev/ttyUSB0}"
+JOY_DEVICE_ID="${TALUS_JOY_DEVICE_ID:-0}"
+RTABMAP_VIZ="${TALUS_RTABMAP_VIZ:-true}"
+RVIZ="${TALUS_RVIZ:-false}"
+
+if [[ "${PROFILE}" == "--help" || "${PROFILE}" == "-h" ]]; then
+  cat <<'EOF'
+Usage: talus-up [floor_test|base|teleop|kinect|slam]
+
+Environment variables:
+  TALUS_PROFILE=floor_test
+  TALUS_ENABLE_TELEOP=auto|true|false
+  TALUS_ENABLE_KINECT=auto|true|false
+  TALUS_SERIAL_PORT=/dev/ttyUSB0
+  TALUS_JOY_DEVICE_ID=0
+  TALUS_RTABMAP_VIZ=true|false
+  TALUS_RVIZ=false|true
+EOF
+  exit 0
+fi
+
+source /opt/ros/jazzy/setup.bash
+source "${ROOT_DIR}/install/setup.bash"
+
+has_joystick() {
+  compgen -G "/dev/input/js*" >/dev/null
+}
+
+has_kinect() {
+  command -v lsusb >/dev/null 2>&1 &&
+    lsusb | grep -qiE 'Xbox NUI|045e:02ae|045e:02ad|045e:02b0'
+}
+
+resolve_feature() {
+  local policy="$1"
+  local detector="$2"
+
+  case "${policy}" in
+    true|false)
+      printf '%s\n' "${policy}"
+      ;;
+    auto)
+      if "${detector}"; then
+        printf 'true\n'
+      else
+        printf 'false\n'
+      fi
+      ;;
+    *)
+      printf 'Invalid policy: %s\n' "${policy}" >&2
+      exit 2
+      ;;
+  esac
+}
+
+ENABLE_TELEOP_RESOLVED="$(resolve_feature "${ENABLE_TELEOP}" has_joystick)"
+ENABLE_KINECT_RESOLVED="$(resolve_feature "${ENABLE_KINECT}" has_kinect)"
+
+echo "Talus profile: ${PROFILE}"
+echo "Teleop enabled: ${ENABLE_TELEOP_RESOLVED}"
+echo "Kinect enabled: ${ENABLE_KINECT_RESOLVED}"
+
+case "${PROFILE}" in
+  floor_test|floor)
+    exec ros2 launch talus_bringup floor_test.launch.py \
+      serial_port:="${SERIAL_PORT}" \
+      joy_device_id:="${JOY_DEVICE_ID}" \
+      enable_teleop:="${ENABLE_TELEOP_RESOLVED}" \
+      enable_kinect:="${ENABLE_KINECT_RESOLVED}"
+    ;;
+  base)
+    exec ros2 launch talus_bringup base.launch.py \
+      serial_port:="${SERIAL_PORT}"
+    ;;
+  teleop)
+    if [[ "${ENABLE_TELEOP_RESOLVED}" != "true" ]]; then
+      echo "Joystick not detected and teleop policy resolved to false." >&2
+      exit 1
+    fi
+    exec ros2 launch talus_bringup teleop.launch.py \
+      joy_device_id:="${JOY_DEVICE_ID}"
+    ;;
+  kinect)
+    if [[ "${ENABLE_KINECT_RESOLVED}" != "true" ]]; then
+      echo "Kinect not detected and kinect policy resolved to false." >&2
+      exit 1
+    fi
+    exec ros2 launch talus_bringup kinect.launch.py
+    ;;
+  slam)
+    if [[ "${ENABLE_KINECT_RESOLVED}" != "true" ]]; then
+      echo "Kinect not detected and slam profile cannot start." >&2
+      exit 1
+    fi
+    exec ros2 launch talus_bringup slam_rtabmap.launch.py \
+      rtabmap_viz:="${RTABMAP_VIZ}" \
+      rviz:="${RVIZ}"
+    ;;
+  *)
+    echo "Unknown profile: ${PROFILE}" >&2
+    exit 2
+    ;;
+esac
