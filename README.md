@@ -4,6 +4,8 @@ Plataforma experimental de robô de serviço baseada em **Raspberry Pi + Arduino
 
 Este repositório representa o estado **mínimo restaurado e validado** do ambiente usado para retomar o ponto funcional do TCC1 e preparar os próximos testes do TCC2.
 
+O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a base tambem foi reorganizada em pacotes ROS 2 (`talus_base` e `talus_bringup`) com um contrato serial novo e unico entre Raspberry Pi e Arduino Nano. Essa refatoracao ainda precisa de validacao completa em hardware.
+
 ## Estado atual validado
 
 No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado com sucesso:
@@ -71,6 +73,16 @@ source install/setup.bash
 
 ## Controle do robô
 
+### Fluxo oficial de comando da base
+
+O caminho de movimento da base passa a ser:
+
+```text
+joy_node -> teleop_twist_joy -> /cmd_vel -> talus_base_bridge -> serial -> Arduino Nano
+```
+
+Esse e o mesmo caminho que depois deve ser reutilizado por Nav2, trocando apenas a origem de `/cmd_vel`.
+
 ### Teste do joystick
 
 Terminal 1:
@@ -102,6 +114,32 @@ source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ros2 launch talus_bringup base_teleop.launch.py
 ```
+
+### Firmware do Arduino Nano
+
+Compilar e enviar para o Nano no `raspi`:
+
+```bash
+cd ~/talus-droid
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+```
+
+Se o upload falhar por bootloader antigo, tentar:
+
+```bash
+arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+```
+
+### Beeps de status
+
+O buzzer em `D11` usa uma tabela curta de status:
+
+- `1 beep curto`: boot OK ou handshake serial OK
+- `2 beeps curtos`: IMU indisponivel, mas base ainda controlavel
+- `3 beeps curtos`: falha serial ou reconexao
+- `1 beep longo`: timeout de drive ou parada de seguranca
 
 ## Kinect v1
 

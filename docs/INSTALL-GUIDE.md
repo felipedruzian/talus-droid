@@ -12,6 +12,17 @@ Este guia cobre o que foi necessário para voltar ao ponto funcional do TCC1 e p
 - Kinect v1 funcionando fora do ROS
 - Kinect v1 funcionando no ROS 2 com RGB, depth, tilt e LED
 
+Nesta branch, o stack da base tambem foi reorganizado em dois pacotes ROS 2:
+
+- `talus_base`: bridge serial e runtime da base
+- `talus_bringup`: launch/config de joystick + teleop + bridge
+
+O fluxo oficial de comando da base passa a ser:
+
+```text
+joy_node -> teleop_twist_joy -> /cmd_vel -> talus_base_bridge -> serial -> Arduino Nano
+```
+
 ---
 
 ## 1. Ambiente validado
@@ -248,6 +259,39 @@ source /opt/ros/jazzy/setup.bash
 source ~/talus-droid/install/setup.bash
 ros2 launch talus_bringup base_teleop.launch.py
 ```
+
+### Firmware novo da base
+
+Compilar no `raspi`:
+
+```bash
+cd ~/talus-droid
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+```
+
+Upload no Nano:
+
+```bash
+cd ~/talus-droid
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+```
+
+Se o Nano usar bootloader antigo:
+
+```bash
+cd ~/talus-droid
+arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+```
+
+### Beeps de status da base
+
+O buzzer ligado em `D11` usa os seguintes padroes:
+
+- `1 beep curto`: boot OK ou handshake serial OK
+- `2 beeps curtos`: IMU indisponivel, mas base ainda controlavel
+- `3 beeps curtos`: falha serial ou reconexao
+- `1 beep longo`: timeout de drive ou parada de seguranca
 
 ---
 
