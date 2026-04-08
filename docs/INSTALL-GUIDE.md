@@ -26,17 +26,17 @@ Este guia cobre o que foi necessário para voltar ao ponto funcional do TCC1 e p
 - Ubuntu Server 24.04 LTS
 - ROS 2 Jazzy (instalação por pacotes `.deb`)
 - RMW: `rmw_cyclonedds_cpp`
-- Workspace ROS em `~/ros2_ws`
+- Workspace ROS em `~/talus-droid`
 - Repositórios locais em `~/repos`
 
 ### Estrutura local relevante
 ```bash
-~/ros2_ws
-~/ros2_ws/src/talus_base/talus_base_bridge.py
-~/ros2_ws/src/KinectV1-Ros2
+~/talus-droid
+~/talus-droid/src/talus_base
+~/talus-droid/src/talus_bringup
+~/talus-droid/src/KinectV1-Ros2
 ~/repos/libfreenect
-~/repos/talus-droid
-~/repos/talus-droid/talus-mvp.ino
+~/talus-droid/firmware/arduino-nano/talus-mvp.ino
 ```
 
 ---
@@ -240,6 +240,15 @@ Terminal 2:
 ros2 topic echo /joy
 ```
 
+### Teleop padrao da base
+
+```bash
+cd ~/talus-droid
+source /opt/ros/jazzy/setup.bash
+source ~/talus-droid/install/setup.bash
+ros2 launch talus_bringup base_teleop.launch.py
+```
+
 ---
 
 ## 8. Bridge serial do robô
@@ -253,25 +262,37 @@ A placa apareceu como:
 
 ### Sketch do Arduino Nano
 ```bash
-~/repos/talus-droid/talus-mvp.ino
+~/talus-droid/firmware/arduino-nano/talus-mvp.ino
 ```
 
-### Bridge Python validado
+### Pacotes ROS da base
 ```bash
-~/ros2_ws/src/talus_base/talus_base_bridge.py
+~/talus-droid/src/talus_base
+~/talus-droid/src/talus_bringup
 ```
 
-### Executar bridge
+### Build dos pacotes da base
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
-python3 src/talus_base/talus_base_bridge.py
+colcon build --symlink-install --packages-select talus_base talus_bringup
+source ~/talus-droid/install/setup.bash
+```
+
+### Executar bridge isolada
+
+```bash
+cd ~/talus-droid
+source /opt/ros/jazzy/setup.bash
+source ~/talus-droid/install/setup.bash
+ros2 run talus_base talus_base_bridge
 ```
 
 Fluxo validado:
 - `joy_node` publicando `/joy`
-- `talus_base_bridge.py` fazendo a ponte ROS ↔ serial
+- `teleop_twist_joy` convertendo `/joy` em `/cmd_vel`
+- `talus_base_bridge` fazendo a ponte `/cmd_vel` ↔ serial
 - Arduino Nano controlando o robô via `/dev/ttyUSB0`
 
 ---
@@ -375,7 +396,7 @@ sudo apt install -y \
 
 ### Repositório usado
 ```bash
-~/ros2_ws/src/KinectV1-Ros2
+~/talus-droid/src/KinectV1-Ros2
 ```
 
 ### Observação importante
@@ -384,7 +405,7 @@ O upstream foi escrito para **ROS 2 Humble / Ubuntu 22.04**. Este guia documenta
 ### Build limpo do workspace
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 rm -rf build install log
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install --event-handlers console_direct+
@@ -393,7 +414,7 @@ colcon build --symlink-install --event-handlers console_direct+
 ### Carregar o overlay
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
@@ -439,7 +460,7 @@ ros2_kinect_tilt ros2_kinect_tilt_node
 Em todo terminal:
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
@@ -627,6 +648,5 @@ Warning não bloqueante. Os nós continuam publicando imagem e `camera_info`, ma
 1. subir RGB + depth simultaneamente por vários minutos
 2. gravar um `ros2 bag` curto com os tópicos do Kinect
 3. testar assinatura dos tópicos a partir de outro computador na LAN
-4. subir Kinect junto com `joy_node` + `talus_base_bridge.py`
+4. subir Kinect junto com `ros2 launch talus_bringup base_teleop.launch.py`
 5. só depois avançar para SLAM/percepção
-

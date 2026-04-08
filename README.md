@@ -31,16 +31,15 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
 ## Estrutura relevante
 
 ```text
-~/ros2_ws
+~/talus-droid
 ├── src/
 │   ├── talus_base/
-│   │   └── talus_base_bridge.py
+│   ├── talus_bringup/
 │   └── KinectV1-Ros2/
-
-~/repos
-├── libfreenect/
-└── talus-droid/
-    └── talus-mvp.ino
+├── firmware/
+│   └── arduino-nano/
+│       └── talus-mvp.ino
+└── docs/
 ```
 
 ## Setup rápido
@@ -65,7 +64,7 @@ source ~/.bashrc
 ### 2. Carregar o workspace
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
@@ -86,12 +85,22 @@ Terminal 2:
 ros2 topic echo /joy
 ```
 
-### Bridge serial com Arduino
+### Bridge serial isolada
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
-python3 src/talus_base/talus_base_bridge.py
+source install/setup.bash
+ros2 run talus_base talus_base_bridge
+```
+
+### Teleop padrao da base
+
+```bash
+cd ~/talus-droid
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 launch talus_bringup base_teleop.launch.py
 ```
 
 ## Kinect v1
@@ -122,7 +131,7 @@ ls -1 /usr/local/bin/freenect-*
 Carregar o ambiente antes:
 
 ```bash
-cd ~/ros2_ws
+cd ~/talus-droid
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ```
@@ -268,15 +277,16 @@ command -v arduino-cli
 
 ## Arquivos importantes
 
-- bridge serial do robô: `~/ros2_ws/src/talus_base/talus_base_bridge.py`
-- sketch do Arduino: `~/repos/talus-droid/talus-mvp.ino`
-- workspace ROS: `~/ros2_ws`
-- repositório do Kinect ROS 2: `~/ros2_ws/src/KinectV1-Ros2`
+- pacote base do robô: `~/talus-droid/src/talus_base`
+- pacote de bringup: `~/talus-droid/src/talus_bringup`
+- sketch do Arduino: `~/talus-droid/firmware/arduino-nano/talus-mvp.ino`
+- workspace ROS: `~/talus-droid`
+- repositório do Kinect ROS 2: `~/talus-droid/src/KinectV1-Ros2`
 - `libfreenect`: `~/repos/libfreenect`
 
 ## Próximos passos
 
-- validar coexistência de `joy_node + talus_base_bridge.py + rgb_node + depth_node`
+- validar coexistência de `ros2 launch talus_bringup base_teleop.launch.py + rgb_node + depth_node`
 - testar gravação curta com `ros2 bag`
 - testar consumo remoto dos tópicos a partir de outra máquina na rede
 - decidir se o fluxo principal ficará nos nós modulares ou no `kinect_ros2_node`
@@ -287,4 +297,3 @@ command -v arduino-cli
 - ROS 2 Jazzy — instalação via pacotes Debian
 - OpenKinect `libfreenect`
 - `KinectV1-Ros2`
-

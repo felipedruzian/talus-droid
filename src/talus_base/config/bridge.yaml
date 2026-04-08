@@ -1,0 +1,16 @@
+talus_base_bridge:
+  ros__parameters:
+    port: /dev/ttyUSB0
+    baud: 115200
+    baseline: 0.19
+    v_max: 0.50
+    pwm_max: 255
+    serial_boot_wait: 0.4
+    serial_timeout: 0.05
+    drive_keepalive: 0.10
+    handshake_timeout: 2.0
+    reconnect_backoff: 1.0
+    enable_status_beeps: true
+    beep_on_first_connect: 1
+    beep_on_reconnect: 3
+    debug: false

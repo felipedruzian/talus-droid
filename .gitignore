@@ -5,4 +5,5 @@ __pycache__/
 *.pyc
 .venv/
 .vscode/
+.codex
 src/KinectV1-Ros2

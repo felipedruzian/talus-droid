@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>talus_base</name>
+  <version>0.1.0</version>
+  <description>Serial bridge and runtime support for the Talus mobile base.</description>
+  <maintainer email="felip@todo.todo">Felip</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>python3-serial</depend>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
