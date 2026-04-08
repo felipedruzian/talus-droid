@@ -37,6 +37,7 @@ const unsigned long CMD_TIMEOUT_MS = 250;
 const unsigned long IMU_PERIOD_MS = 20;
 const unsigned long ENCODER_PERIOD_MS = 50;
 const size_t RX_BUFFER_SIZE = 96;
+const bool BEEP_ON_DRIVE_TIMEOUT = false;
 
 const unsigned int STATUS_BEEP_FREQ_HZ = 2400;
 const unsigned int HORN_FREQ_HZ = 1800;
@@ -419,7 +420,9 @@ void loop() {
   if (!driveTimedOut && (now - lastCmdMs > CMD_TIMEOUT_MS)) {
     stopBase();
     driveTimedOut = true;
-    triggerBeepPattern(4);
+    if (BEEP_ON_DRIVE_TIMEOUT) {
+      triggerBeepPattern(4);
+    }
   }
 
   driveMotor(PWMA, AIN1, AIN2, cmdL);
