@@ -10,6 +10,8 @@ JOY_DEVICE_ID="${TALUS_JOY_DEVICE_ID:-0}"
 RTABMAP_VIZ="${TALUS_RTABMAP_VIZ:-true}"
 RVIZ="${TALUS_RVIZ:-false}"
 DEVICE_SETTLE_SECS="${TALUS_DEVICE_SETTLE_SECS:-0}"
+ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-42}"
+RMW_IMPLEMENTATION="${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp}"
 
 if [[ "${PROFILE}" == "--help" || "${PROFILE}" == "-h" ]]; then
   cat <<'EOF'
@@ -31,6 +33,8 @@ set +u
 source /opt/ros/jazzy/setup.bash
 source "${ROOT_DIR}/install/setup.bash"
 set -u
+export ROS_DOMAIN_ID
+export RMW_IMPLEMENTATION
 
 has_joystick() {
   compgen -G "/dev/input/js*" >/dev/null
@@ -69,6 +73,8 @@ ENABLE_KINECT_RESOLVED="$(resolve_feature "${ENABLE_KINECT}" has_kinect)"
 echo "Talus profile: ${PROFILE}"
 echo "Teleop enabled: ${ENABLE_TELEOP_RESOLVED}"
 echo "Kinect enabled: ${ENABLE_KINECT_RESOLVED}"
+echo "ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}"
+echo "RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}"
 
 if [[ "${DEVICE_SETTLE_SECS}" != "0" ]]; then
   echo "Waiting ${DEVICE_SETTLE_SECS}s for device settle"
