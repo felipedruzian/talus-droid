@@ -16,15 +16,15 @@ teleop_twist_joy_node:
       y: 0.0
       z: 0.0
     axis_angular:
-      yaw: 2
+      yaw: 0
       pitch: -1
       roll: -1
     scale_angular:
-      yaw: 1.2
+      yaw: -1.2
       pitch: 0.0
       roll: 0.0
     scale_angular_turbo:
-      yaw: 1.8
+      yaw: -1.8
       pitch: 0.0
       roll: 0.0
     inverted_reverse: false
