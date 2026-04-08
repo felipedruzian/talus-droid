@@ -26,8 +26,10 @@ EOF
   exit 0
 fi
 
+set +u
 source /opt/ros/jazzy/setup.bash
 source "${ROOT_DIR}/install/setup.bash"
+set -u
 
 has_joystick() {
   compgen -G "/dev/input/js*" >/dev/null
