@@ -47,7 +47,7 @@ Talus-Droid e a base pratica do TCC para um robo de servico/domestico com:
 
 ### Bridge e firmware
 
-- [serial_bridge.py](/home/felip/repos/talus-droid/src/talus_base/talus_base/serial_bridge.py) e [talus-mvp.ino](/home/felip/repos/talus-droid/firmware/arduino-nano/talus-mvp.ino) precisam permanecer alinhados ao mesmo protocolo serial
+- [serial_bridge.py](/home/felip/repos/talus-droid/src/talus_base/talus_base/serial_bridge.py) e [arduino-nano.ino](/home/felip/repos/talus-droid/firmware/arduino-nano/arduino-nano.ino) precisam permanecer alinhados ao mesmo protocolo serial
 - a nova bridge empacotada e o novo firmware ainda precisam de validacao sistematica em hardware no `raspi`
 - o encoder esquerdo apresentou assimetria nos testes anteriores e nao deve bloquear a validacao inicial de motores + IMU
 

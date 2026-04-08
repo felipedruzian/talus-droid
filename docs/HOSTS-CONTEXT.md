@@ -81,6 +81,7 @@ Pacotes confirmados no overlay do `raspi`:
 
 - a implementacao em desenvolvimento usa o pacote ROS `talus_base`
 - o bring-up padrao de teleop usa `talus_bringup`
+- o sketch oficial do Nano fica em `~/talus-droid/firmware/arduino-nano/arduino-nano.ino`
 - o contrato serial alvo atual entre Pi e Nano e:
   - `PING`
   - `PONG <fw_version> IMU_OK=<0|1>`

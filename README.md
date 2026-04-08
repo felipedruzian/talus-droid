@@ -40,7 +40,7 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
 │   └── KinectV1-Ros2/
 ├── firmware/
 │   └── arduino-nano/
-│       └── talus-mvp.ino
+│       └── arduino-nano.ino
 └── docs/
 ```
 
@@ -121,15 +121,15 @@ Compilar e enviar para o Nano no `raspi`:
 
 ```bash
 cd ~/talus-droid
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano
 ```
 
 Se o upload falhar por bootloader antigo, tentar:
 
 ```bash
-arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano
 ```
 
 ### Beeps de status
@@ -317,7 +317,7 @@ command -v arduino-cli
 
 - pacote base do robô: `~/talus-droid/src/talus_base`
 - pacote de bringup: `~/talus-droid/src/talus_bringup`
-- sketch do Arduino: `~/talus-droid/firmware/arduino-nano/talus-mvp.ino`
+- sketch do Arduino: `~/talus-droid/firmware/arduino-nano/arduino-nano.ino`
 - workspace ROS: `~/talus-droid`
 - repositório do Kinect ROS 2: `~/talus-droid/src/KinectV1-Ros2`
 - `libfreenect`: `~/repos/libfreenect`

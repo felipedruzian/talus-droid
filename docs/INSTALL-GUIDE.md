@@ -47,7 +47,7 @@ joy_node -> teleop_twist_joy -> /cmd_vel -> talus_base_bridge -> serial -> Ardui
 ~/talus-droid/src/talus_bringup
 ~/talus-droid/src/KinectV1-Ros2
 ~/repos/libfreenect
-~/talus-droid/firmware/arduino-nano/talus-mvp.ino
+~/talus-droid/firmware/arduino-nano/arduino-nano.ino
 ```
 
 ---
@@ -266,22 +266,22 @@ Compilar no `raspi`:
 
 ```bash
 cd ~/talus-droid
-arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+arduino-cli compile --fqbn arduino:avr:nano firmware/arduino-nano
 ```
 
 Upload no Nano:
 
 ```bash
 cd ~/talus-droid
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano/talus-mvp.ino
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano firmware/arduino-nano
 ```
 
 Se o Nano usar bootloader antigo:
 
 ```bash
 cd ~/talus-droid
-arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
-arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano/talus-mvp.ino
+arduino-cli compile --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano
+arduino-cli upload -p /dev/ttyUSB0 --fqbn arduino:avr:nano:cpu=atmega328old firmware/arduino-nano
 ```
 
 ### Beeps de status da base
@@ -306,7 +306,7 @@ A placa apareceu como:
 
 ### Sketch do Arduino Nano
 ```bash
-~/talus-droid/firmware/arduino-nano/talus-mvp.ino
+~/talus-droid/firmware/arduino-nano/arduino-nano.ino
 ```
 
 ### Pacotes ROS da base
