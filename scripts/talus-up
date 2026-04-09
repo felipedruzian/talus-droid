@@ -7,7 +7,8 @@ ENABLE_TELEOP="${TALUS_ENABLE_TELEOP:-auto}"
 ENABLE_KINECT="${TALUS_ENABLE_KINECT:-auto}"
 SERIAL_PORT="${TALUS_SERIAL_PORT:-/dev/ttyUSB0}"
 JOY_DEVICE_ID="${TALUS_JOY_DEVICE_ID:-0}"
-KINECT_DRIVER_MODE="${TALUS_KINECT_DRIVER_MODE:-modular}"
+KINECT_DRIVER_MODE="${TALUS_KINECT_DRIVER_MODE:-unified}"
+KINECT_ENABLE_POINT_CLOUD="${TALUS_KINECT_ENABLE_POINT_CLOUD:-false}"
 RTABMAP_VIZ="${TALUS_RTABMAP_VIZ:-true}"
 RVIZ="${TALUS_RVIZ:-false}"
 USE_RGBD_SYNC="${TALUS_USE_RGBD_SYNC:-false}"
@@ -27,7 +28,8 @@ Environment variables:
   TALUS_ENABLE_KINECT=auto|true|false
   TALUS_SERIAL_PORT=/dev/ttyUSB0
   TALUS_JOY_DEVICE_ID=0
-  TALUS_KINECT_DRIVER_MODE=modular|unified
+  TALUS_KINECT_DRIVER_MODE=unified|modular
+  TALUS_KINECT_ENABLE_POINT_CLOUD=false|true
   TALUS_RTABMAP_VIZ=true|false
   TALUS_RVIZ=false|true
   TALUS_USE_RGBD_SYNC=false|true
@@ -82,6 +84,7 @@ echo "Talus profile: ${PROFILE}"
 echo "Teleop enabled: ${ENABLE_TELEOP_RESOLVED}"
 echo "Kinect enabled: ${ENABLE_KINECT_RESOLVED}"
 echo "Kinect driver mode: ${KINECT_DRIVER_MODE}"
+echo "Kinect point cloud: ${KINECT_ENABLE_POINT_CLOUD}"
 echo "ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}"
 echo "RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}"
 
@@ -100,6 +103,7 @@ case "${PROFILE}" in
       serial_port:="${SERIAL_PORT}" \
       joy_device_id:="${JOY_DEVICE_ID}" \
       kinect_driver_mode:="${KINECT_DRIVER_MODE}" \
+      kinect_enable_point_cloud:="${KINECT_ENABLE_POINT_CLOUD}" \
       enable_teleop:="${ENABLE_TELEOP_RESOLVED}" \
       enable_kinect:="${ENABLE_KINECT_RESOLVED}"
     ;;
@@ -121,7 +125,8 @@ case "${PROFILE}" in
       exit 1
     fi
     exec ros2 launch talus_bringup kinect.launch.py \
-      driver_mode:="${KINECT_DRIVER_MODE}"
+      driver_mode:="${KINECT_DRIVER_MODE}" \
+      enable_point_cloud:="${KINECT_ENABLE_POINT_CLOUD}"
     ;;
   odom_test|odom)
     if [[ "${ENABLE_KINECT_RESOLVED}" != "true" ]]; then
@@ -131,6 +136,7 @@ case "${PROFILE}" in
     exec ros2 launch talus_bringup odom_test.launch.py \
       serial_port:="${SERIAL_PORT}" \
       kinect_driver_mode:="${KINECT_DRIVER_MODE}" \
+      kinect_enable_point_cloud:="${KINECT_ENABLE_POINT_CLOUD}" \
       use_rgbd_sync:="${USE_RGBD_SYNC}" \
       approx_sync:="${APPROX_SYNC}" \
       approx_sync_max_interval:="${APPROX_SYNC_MAX_INTERVAL}"

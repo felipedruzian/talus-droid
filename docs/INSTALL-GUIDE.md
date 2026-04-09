@@ -289,7 +289,8 @@ Perfis suportados:
 Variaveis operacionais novas:
 
 ```bash
-export TALUS_KINECT_DRIVER_MODE=modular
+export TALUS_KINECT_DRIVER_MODE=unified
+export TALUS_KINECT_ENABLE_POINT_CLOUD=false
 export TALUS_USE_RGBD_SYNC=false
 export TALUS_APPROX_SYNC=true
 export TALUS_APPROX_SYNC_MAX_INTERVAL=0.01
@@ -688,27 +689,66 @@ ros2 topic hz /image_raw
 ros2 topic hz /depth/image_raw
 ```
 
+### Patch do fork do Kinect
+
+No `raspi`, o fork local `src/KinectV1-Ros2` pode receber o patch versionado do repositório principal para:
+
+- desligar a point cloud por CLI
+- alinhar os `frame_id` de RGB/depth com os frames opticos do bringup
+
+Aplicar:
+
+```bash
+cd ~/talus-droid
+./scripts/apply-kinect-patches
+```
+
+Depois, recompilar os pacotes afetados:
+
+```bash
+cd ~/talus-droid
+source /opt/ros/jazzy/setup.bash
+export ROS_DOMAIN_ID=42
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+colcon build --symlink-install --packages-select kinect_ros2 talus_base talus_bringup
+```
+
+### Bringup do Kinect
+
+O bringup atual privilegia o executavel unificado com point cloud desligada por default:
+
+- `kinect_ros2_node`
+- `/image_raw`, `/depth/image_raw`, `/camera_info` e `/depth/camera_info`
+- sem `/points` por padrao
+
+Subir somente o Kinect com a configuracao default:
+
+```bash
+cd ~/talus-droid
+./scripts/talus-up kinect
+```
+
+Ativar point cloud explicitamente:
+
+```bash
+cd ~/talus-droid
+TALUS_KINECT_ENABLE_POINT_CLOUD=true ./scripts/talus-up kinect
+```
+
 ### Bringup modular do Kinect
 
-O bringup atual do Talus privilegia o modo `modular`:
+O modo `modular` continua disponivel para experimentos:
 
 - `ros2_kinect_rgb`
 - `ros2_kinect_depth`
 - remapeados para `/image_raw`, `/depth/image_raw`, `/camera_info` e `/depth/camera_info`
-- sem `/points` por padrao
+- sem compartilhar o mesmo dispositivo entre RGB e depth
 
 Subir somente o Kinect em modo modular:
 
 ```bash
 cd ~/talus-droid
 TALUS_KINECT_DRIVER_MODE=modular ./scripts/talus-up kinect
-```
-
-Voltar ao executavel unificado:
-
-```bash
-cd ~/talus-droid
-TALUS_KINECT_DRIVER_MODE=unified ./scripts/talus-up kinect
 ```
 
 ---

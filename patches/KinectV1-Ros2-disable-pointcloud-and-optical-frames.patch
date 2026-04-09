@@ -1,0 +1,84 @@
+diff --git a/src/kinect_ros2/src/kinect_ros2_component.cpp b/src/kinect_ros2/src/kinect_ros2_component.cpp
+index 9cf0b97..8ea794f 100644
+--- a/src/kinect_ros2/src/kinect_ros2_component.cpp
++++ b/src/kinect_ros2/src/kinect_ros2_component.cpp
+@@ -29,19 +29,12 @@ namespace kinect_ros2
+         this, "kinect", "file://" + pkg_share + "/cfg/calibration_rgb.yaml");
+ 
+     depth_info_ = depth_info_manager_->getCameraInfo();
+-    depth_info_.header.frame_id = "kinect_depth";
++    depth_info_.header.frame_id = "kinect_depth_optical_frame";
+ 
+     rgb_info_ = rgb_info_manager_->getCameraInfo();
+-    rgb_info_.header.frame_id = "kinect_rgb";
++    rgb_info_.header.frame_id = "kinect_rgb_optical_frame";
+ 
+     depth_pub_ = image_transport::create_camera_publisher(this, "depth/image_raw");
+     rgb_pub_ = image_transport::create_camera_publisher(this, "image_raw");
+-
+-    // Initialize TF broadcaster and publish static transforms
+-    static_tf_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
+-
+-    // Identity transforms for now; replace with measured offsets/rotations when available.
+-    publish_static_tf("base_link", "kinect_rgb", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+-    publish_static_tf("base_link", "kinect_depth", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+ 
+     if (freenect_init(&fn_ctx_, nullptr) < 0)
+     {
+diff --git a/src/kinect_ros2/src/kinect_ros2_node.cpp b/src/kinect_ros2/src/kinect_ros2_node.cpp
+index a7975e6..4cc7f27 100644
+--- a/src/kinect_ros2/src/kinect_ros2_node.cpp
++++ b/src/kinect_ros2/src/kinect_ros2_node.cpp
+@@ -42,10 +42,21 @@ rclcpp::node_interfaces::NodeBaseInterface::SharedPtr get_depth_image_proc_compo
+     RCLCPP_ERROR(rclcpp::get_logger("kinect_ros2_node"), "Component loading failed: %s", e.what());
+     return nullptr;
+   }
+ }
+ 
+ int main(int argc, char * argv[])
+ {
++  bool enable_pointcloud = true;
++  for (int i = 1; i < argc; ++i) {
++    if (std::string(argv[i]) == "--disable-pointcloud") {
++      enable_pointcloud = false;
++    }
++  }
++
+   rclcpp::init(argc, argv);
+   rclcpp::executors::SingleThreadedExecutor exec;
+@@ -56,8 +67,12 @@ int main(int argc, char * argv[])
+   auto kinect_component = std::make_shared<kinect_ros2::KinectRosComponent>(options);
+   exec.add_node(kinect_component);
+ 
+-  auto depth_image_proc_component = get_depth_image_proc_component();
+-  if (depth_image_proc_component) {
++  auto depth_image_proc_component = enable_pointcloud ? get_depth_image_proc_component() : nullptr;
++  if (!enable_pointcloud) {
++    RCLCPP_INFO(rclcpp::get_logger("kinect_ros2_node"), "Point cloud component disabled by CLI flag.");
++  }
++
++  if (depth_image_proc_component) {
+     exec.add_node(depth_image_proc_component);
+   } else {
+     RCLCPP_WARN(rclcpp::get_logger("kinect_ros2_node"), "Skipping depth_image_proc component due to load failure.");
+*** Add File: /home/felip/repos/talus-droid/scripts/apply-kinect-patches
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_DIR="${ROOT_DIR}/src/KinectV1-Ros2"
+PATCH_FILE="${ROOT_DIR}/patches/KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch"
+
+if [[ ! -d "${TARGET_DIR}/.git" ]]; then
+  echo "KinectV1-Ros2 checkout not found at ${TARGET_DIR}" >&2
+  exit 1
+fi
+
+if git -C "${TARGET_DIR}" apply --reverse --check "${PATCH_FILE}" >/dev/null 2>&1; then
+  echo "Kinect patch already applied in ${TARGET_DIR}"
+  exit 0
+fi
+
+git -C "${TARGET_DIR}" apply --check "${PATCH_FILE}"
+git -C "${TARGET_DIR}" apply "${PATCH_FILE}"
+echo "Applied Kinect patch from ${PATCH_FILE}"

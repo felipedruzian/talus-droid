@@ -111,7 +111,7 @@ Pacotes confirmados no overlay do `raspi`:
   - `/image_raw`
   - `/depth/image_raw`
   - `/camera_info`
-- o bringup atual privilegia o modo modular do Kinect para reduzir CPU e evitar `/points` por padrao
+- o bringup atual privilegia `kinect_ros2_node` com point cloud desligada por patch/CLI; o modo modular ficou apenas experimental
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`
 - nesse experimento apareceram:
   - warnings de `Did not receive data since 5 seconds`

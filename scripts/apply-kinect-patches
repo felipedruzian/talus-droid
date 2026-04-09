@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TARGET_DIR="${ROOT_DIR}/src/KinectV1-Ros2"
+PATCH_FILE="${ROOT_DIR}/patches/KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch"
+
+if [[ ! -d "${TARGET_DIR}/.git" ]]; then
+  echo "KinectV1-Ros2 checkout not found at ${TARGET_DIR}" >&2
+  exit 1
+fi
+
+if git -C "${TARGET_DIR}" apply --reverse --check "${PATCH_FILE}" >/dev/null 2>&1; then
+  echo "Kinect patch already applied in ${TARGET_DIR}"
+  exit 0
+fi
+
+git -C "${TARGET_DIR}" apply --check "${PATCH_FILE}"
+git -C "${TARGET_DIR}" apply "${PATCH_FILE}"
+echo "Applied Kinect patch from ${PATCH_FILE}"

@@ -93,7 +93,7 @@ Perfis disponiveis:
 
 O script detecta joystick e Kinect em modo `auto` e nao sobe esses subsistemas se os devices nao estiverem presentes.
 No startup por `systemd`, o arquivo `talus-bringup.env` tambem pode definir `TALUS_DEVICE_SETTLE_SECS` para aguardar alguns segundos antes da deteccao de USB.
-Para o Kinect, o modo default do bringup passou a ser `modular`, configuravel por `TALUS_KINECT_DRIVER_MODE=modular|unified`.
+Para o Kinect, o bringup agora usa por default o executavel unificado com point cloud desligada, configuravel por `TALUS_KINECT_DRIVER_MODE` e `TALUS_KINECT_ENABLE_POINT_CLOUD`.
 
 ### Startup opt-in com systemd
 
@@ -326,7 +326,9 @@ Tópicos observados com o nó unificado:
 /tilt_angle
 ```
 
-O bringup atual do robo usa por default os nos modulares `ros2_kinect_rgb` e `ros2_kinect_depth`, remapeados para `/image_raw`, `/depth/image_raw`, `/camera_info` e `/depth/camera_info`. O executavel `kinect_ros2_node` segue disponivel como fallback via `TALUS_KINECT_DRIVER_MODE=unified`.
+O bringup atual do robo usa por default o executavel `kinect_ros2_node` com a point cloud desligada para reduzir CPU e banda. O modo `modular` continua disponivel para experimentos, mas nao e o padrao.
+
+No `raspi`, o fork local do Kinect recebe o patch versionado em [KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch](/home/felip/repos/talus-droid/patches/KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch), aplicado por [apply-kinect-patches](/home/felip/repos/talus-droid/scripts/apply-kinect-patches).
 
 ## Testes recomendados após subir os nós
 

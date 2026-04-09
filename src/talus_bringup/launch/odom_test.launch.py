@@ -13,6 +13,7 @@ def generate_launch_description() -> LaunchDescription:
     imu_filter_params_file = LaunchConfiguration("imu_filter_params_file")
     frames_file = LaunchConfiguration("frames_file")
     kinect_driver_mode = LaunchConfiguration("kinect_driver_mode")
+    kinect_enable_point_cloud = LaunchConfiguration("kinect_enable_point_cloud")
     namespace = LaunchConfiguration("namespace")
     frame_id = LaunchConfiguration("frame_id")
     odom_topic = LaunchConfiguration("odom_topic")
@@ -32,7 +33,8 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             DeclareLaunchArgument("serial_port", default_value="/dev/ttyUSB0"),
-            DeclareLaunchArgument("kinect_driver_mode", default_value="modular"),
+            DeclareLaunchArgument("kinect_driver_mode", default_value="unified"),
+            DeclareLaunchArgument("kinect_enable_point_cloud", default_value="false"),
             DeclareLaunchArgument("namespace", default_value="rtabmap"),
             DeclareLaunchArgument("frame_id", default_value="base_link"),
             DeclareLaunchArgument("odom_topic", default_value="odom"),
@@ -88,6 +90,7 @@ def generate_launch_description() -> LaunchDescription:
                 launch_arguments={
                     "frames_file": frames_file,
                     "driver_mode": kinect_driver_mode,
+                    "enable_point_cloud": kinect_enable_point_cloud,
                 }.items(),
             ),
             Node(

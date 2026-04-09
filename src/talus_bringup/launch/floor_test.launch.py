@@ -17,6 +17,7 @@ def generate_launch_description() -> LaunchDescription:
     joy_params_file = LaunchConfiguration("joy_params_file")
     teleop_params_file = LaunchConfiguration("teleop_params_file")
     kinect_driver_mode = LaunchConfiguration("kinect_driver_mode")
+    kinect_enable_point_cloud = LaunchConfiguration("kinect_enable_point_cloud")
 
     return LaunchDescription(
         [
@@ -24,7 +25,8 @@ def generate_launch_description() -> LaunchDescription:
             DeclareLaunchArgument("enable_kinect", default_value="false"),
             DeclareLaunchArgument("serial_port", default_value="/dev/ttyUSB0"),
             DeclareLaunchArgument("joy_device_id", default_value="0"),
-            DeclareLaunchArgument("kinect_driver_mode", default_value="modular"),
+            DeclareLaunchArgument("kinect_driver_mode", default_value="unified"),
+            DeclareLaunchArgument("kinect_enable_point_cloud", default_value="false"),
             DeclareLaunchArgument(
                 "bridge_params_file",
                 default_value=PathJoinSubstitution(
@@ -95,6 +97,7 @@ def generate_launch_description() -> LaunchDescription:
                 launch_arguments={
                     "frames_file": frames_file,
                     "driver_mode": kinect_driver_mode,
+                    "enable_point_cloud": kinect_enable_point_cloud,
                 }.items(),
             ),
         ]

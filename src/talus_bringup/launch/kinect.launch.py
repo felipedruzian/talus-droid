@@ -46,45 +46,46 @@ def _make_static_tf_node(name: str, frame: dict) -> Node:
 
 
 def _camera_tf_nodes(context):
-    driver_mode = LaunchConfiguration("driver_mode").perform(context)
     frames_file = LaunchConfiguration("frames_file").perform(context)
-
-    nodes = [
+    return [
         _make_static_tf_node(
             "camera_mount_static_tf", _load_frame_entry(frames_file, "camera_mount")
-        )
+        ),
+        _make_static_tf_node(
+            "camera_rgb_optical_static_tf",
+            _load_frame_entry(frames_file, "camera_rgb_optical"),
+        ),
+        _make_static_tf_node(
+            "camera_depth_optical_static_tf",
+            _load_frame_entry(frames_file, "camera_depth_optical"),
+        ),
     ]
-    if driver_mode == "modular":
-        nodes.extend(
-            [
-                _make_static_tf_node(
-                    "camera_rgb_optical_static_tf",
-                    _load_frame_entry(frames_file, "camera_rgb_optical"),
-                ),
-                _make_static_tf_node(
-                    "camera_depth_optical_static_tf",
-                    _load_frame_entry(frames_file, "camera_depth_optical"),
-                ),
-            ]
-        )
-    return nodes
 
 
 def generate_launch_description() -> LaunchDescription:
     driver_mode = LaunchConfiguration("driver_mode")
+    enable_point_cloud = LaunchConfiguration("enable_point_cloud")
     rgb_camera_info_url = LaunchConfiguration("rgb_camera_info_url")
     depth_camera_info_url = LaunchConfiguration("depth_camera_info_url")
 
     modular_condition = IfCondition(
         PythonExpression(["'", driver_mode, "' == 'modular'"])
     )
-    unified_condition = IfCondition(
-        PythonExpression(["'", driver_mode, "' == 'unified'"])
+    unified_point_cloud_condition = IfCondition(
+        PythonExpression(
+            ["'", driver_mode, "' == 'unified' and '", enable_point_cloud, "' == 'true'"]
+        )
+    )
+    unified_no_point_cloud_condition = IfCondition(
+        PythonExpression(
+            ["'", driver_mode, "' == 'unified' and '", enable_point_cloud, "' != 'true'"]
+        )
     )
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument("driver_mode", default_value="modular"),
+            DeclareLaunchArgument("driver_mode", default_value="unified"),
+            DeclareLaunchArgument("enable_point_cloud", default_value="false"),
             DeclareLaunchArgument(
                 "frames_file",
                 default_value=PathJoinSubstitution(
@@ -141,7 +142,15 @@ def generate_launch_description() -> LaunchDescription:
                 executable="kinect_ros2_node",
                 name="kinect_ros2_node",
                 output="screen",
-                condition=unified_condition,
+                condition=unified_point_cloud_condition,
+            ),
+            Node(
+                package="kinect_ros2",
+                executable="kinect_ros2_node",
+                name="kinect_ros2_node",
+                output="screen",
+                condition=unified_no_point_cloud_condition,
+                arguments=["--disable-pointcloud"],
             ),
         ]
     )
