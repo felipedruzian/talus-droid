@@ -691,7 +691,7 @@ ros2 topic hz /depth/image_raw
 
 ### Patch do fork do Kinect
 
-No `raspi`, o fork local `src/KinectV1-Ros2` pode receber o patch versionado do repositório principal para:
+No `raspi`, o fork local `src/KinectV1-Ros2` pode receber a correcao versionada do repositorio principal para:
 
 - desligar a point cloud por CLI
 - alinhar os `frame_id` de RGB/depth com os frames opticos do bringup

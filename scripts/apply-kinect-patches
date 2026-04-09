@@ -3,18 +3,90 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET_DIR="${ROOT_DIR}/src/KinectV1-Ros2"
-PATCH_FILE="${ROOT_DIR}/patches/KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch"
 
 if [[ ! -d "${TARGET_DIR}/.git" ]]; then
   echo "KinectV1-Ros2 checkout not found at ${TARGET_DIR}" >&2
   exit 1
 fi
 
-if git -C "${TARGET_DIR}" apply --reverse --check "${PATCH_FILE}" >/dev/null 2>&1; then
-  echo "Kinect patch already applied in ${TARGET_DIR}"
-  exit 0
-fi
+python3 - "${TARGET_DIR}" <<'PY'
+from pathlib import Path
+import sys
 
-git -C "${TARGET_DIR}" apply --check "${PATCH_FILE}"
-git -C "${TARGET_DIR}" apply "${PATCH_FILE}"
-echo "Applied Kinect patch from ${PATCH_FILE}"
+root = Path(sys.argv[1])
+component_path = root / "src/kinect_ros2/src/kinect_ros2_component.cpp"
+node_path = root / "src/kinect_ros2/src/kinect_ros2_node.cpp"
+
+component = component_path.read_text()
+node = node_path.read_text()
+
+component_changed = False
+node_changed = False
+
+component_replacements = [
+    ('depth_info_.header.frame_id = "kinect_depth";', 'depth_info_.header.frame_id = "kinect_depth_optical_frame";'),
+    ('rgb_info_.header.frame_id = "kinect_rgb";', 'rgb_info_.header.frame_id = "kinect_rgb_optical_frame";'),
+    (
+        "    // Initialize TF broadcaster and publish static transforms\n"
+        "    static_tf_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);\n\n"
+        "    // Identity transforms for now; replace with measured offsets/rotations when available.\n"
+        "    publish_static_tf(\"base_link\", \"kinect_rgb\", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);\n"
+        "    publish_static_tf(\"base_link\", \"kinect_depth\", 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);\n\n",
+        "",
+    ),
+]
+
+for old, new in component_replacements:
+    if old in component:
+        component = component.replace(old, new, 1)
+        component_changed = True
+
+if "--disable-pointcloud" not in node:
+    marker = "int main(int argc, char * argv[])\n{\n"
+    insert = (
+        "int main(int argc, char * argv[])\n{\n"
+        "  bool enable_pointcloud = true;\n"
+        "  for (int i = 1; i < argc; ++i) {\n"
+        "    if (std::string(argv[i]) == \"--disable-pointcloud\") {\n"
+        "      enable_pointcloud = false;\n"
+        "    }\n"
+        "  }\n\n"
+    )
+    if marker not in node:
+        raise SystemExit("Could not find Kinect main() marker")
+    node = node.replace(marker, insert, 1)
+    node_changed = True
+
+    old_block = (
+        "  auto depth_image_proc_component = get_depth_image_proc_component();\n"
+        "  if (depth_image_proc_component) {\n"
+        "    exec.add_node(depth_image_proc_component);\n"
+        "  } else {\n"
+        "    RCLCPP_WARN(rclcpp::get_logger(\"kinect_ros2_node\"), \"Skipping depth_image_proc component due to load failure.\");\n"
+        "  }\n"
+    )
+    new_block = (
+        "  auto depth_image_proc_component = enable_pointcloud ? get_depth_image_proc_component() : nullptr;\n"
+        "  if (!enable_pointcloud) {\n"
+        "    RCLCPP_INFO(rclcpp::get_logger(\"kinect_ros2_node\"), \"Point cloud component disabled by CLI flag.\");\n"
+        "  }\n"
+        "  if (depth_image_proc_component) {\n"
+        "    exec.add_node(depth_image_proc_component);\n"
+        "  } else {\n"
+        "    RCLCPP_WARN(rclcpp::get_logger(\"kinect_ros2_node\"), \"Skipping depth_image_proc component due to load failure.\");\n"
+        "  }\n"
+    )
+    if old_block not in node:
+        raise SystemExit("Could not find Kinect point cloud block")
+    node = node.replace(old_block, new_block, 1)
+
+if component_changed:
+    component_path.write_text(component)
+if node_changed:
+    node_path.write_text(node)
+
+if component_changed or node_changed:
+    print("Applied Kinect patch logic")
+else:
+    print("Kinect patch already applied")
+PY

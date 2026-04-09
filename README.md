@@ -328,7 +328,7 @@ Tópicos observados com o nó unificado:
 
 O bringup atual do robo usa por default o executavel `kinect_ros2_node` com a point cloud desligada para reduzir CPU e banda. O modo `modular` continua disponivel para experimentos, mas nao e o padrao.
 
-No `raspi`, o fork local do Kinect recebe o patch versionado em [KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch](/home/felip/repos/talus-droid/patches/KinectV1-Ros2-disable-pointcloud-and-optical-frames.patch), aplicado por [apply-kinect-patches](/home/felip/repos/talus-droid/scripts/apply-kinect-patches).
+No `raspi`, o fork local do Kinect recebe essa correcao pelo helper [apply-kinect-patches](/home/felip/repos/talus-droid/scripts/apply-kinect-patches).
 
 ## Testes recomendados após subir os nós
 
