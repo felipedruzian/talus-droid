@@ -283,7 +283,17 @@ Perfis suportados:
 - `base`
 - `teleop`
 - `kinect`
+- `odom_test`
 - `slam`
+
+Variaveis operacionais novas:
+
+```bash
+export TALUS_KINECT_DRIVER_MODE=modular
+export TALUS_USE_RGBD_SYNC=false
+export TALUS_APPROX_SYNC=true
+export TALUS_APPROX_SYNC_MAX_INTERVAL=0.01
+```
 
 ### Startup opt-in com systemd
 
@@ -320,6 +330,10 @@ Frames usados nesta fase:
 - `base_link`
 - `imu_link`
 - `camera_link`
+- `kinect_rgb_optical_frame`
+- `kinect_depth_optical_frame`
+
+Os frames estaticos ficam centralizados em `src/talus_bringup/config/frames.yaml`. Os offsets default de `base_link -> imu_link` e `base_link -> camera_link` ainda sao placeholders e precisam de medicao fisica posterior.
 
 ### Firmware novo da base
 
@@ -672,6 +686,29 @@ Em outro terminal:
 ros2 topic list
 ros2 topic hz /image_raw
 ros2 topic hz /depth/image_raw
+```
+
+### Bringup modular do Kinect
+
+O bringup atual do Talus privilegia o modo `modular`:
+
+- `ros2_kinect_rgb`
+- `ros2_kinect_depth`
+- remapeados para `/image_raw`, `/depth/image_raw`, `/camera_info` e `/depth/camera_info`
+- sem `/points` por padrao
+
+Subir somente o Kinect em modo modular:
+
+```bash
+cd ~/talus-droid
+TALUS_KINECT_DRIVER_MODE=modular ./scripts/talus-up kinect
+```
+
+Voltar ao executavel unificado:
+
+```bash
+cd ~/talus-droid
+TALUS_KINECT_DRIVER_MODE=unified ./scripts/talus-up kinect
 ```
 
 ---

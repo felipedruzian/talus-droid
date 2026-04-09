@@ -13,24 +13,10 @@ def generate_launch_description() -> LaunchDescription:
     joy_device_id = LaunchConfiguration("joy_device_id")
     bridge_params_file = LaunchConfiguration("bridge_params_file")
     imu_filter_params_file = LaunchConfiguration("imu_filter_params_file")
+    frames_file = LaunchConfiguration("frames_file")
     joy_params_file = LaunchConfiguration("joy_params_file")
     teleop_params_file = LaunchConfiguration("teleop_params_file")
-    imu_parent_frame = LaunchConfiguration("imu_parent_frame")
-    imu_frame = LaunchConfiguration("imu_frame")
-    imu_x = LaunchConfiguration("imu_x")
-    imu_y = LaunchConfiguration("imu_y")
-    imu_z = LaunchConfiguration("imu_z")
-    imu_roll = LaunchConfiguration("imu_roll")
-    imu_pitch = LaunchConfiguration("imu_pitch")
-    imu_yaw = LaunchConfiguration("imu_yaw")
-    camera_parent_frame = LaunchConfiguration("camera_parent_frame")
-    camera_frame = LaunchConfiguration("camera_frame")
-    camera_x = LaunchConfiguration("camera_x")
-    camera_y = LaunchConfiguration("camera_y")
-    camera_z = LaunchConfiguration("camera_z")
-    camera_roll = LaunchConfiguration("camera_roll")
-    camera_pitch = LaunchConfiguration("camera_pitch")
-    camera_yaw = LaunchConfiguration("camera_yaw")
+    kinect_driver_mode = LaunchConfiguration("kinect_driver_mode")
 
     return LaunchDescription(
         [
@@ -38,6 +24,7 @@ def generate_launch_description() -> LaunchDescription:
             DeclareLaunchArgument("enable_kinect", default_value="false"),
             DeclareLaunchArgument("serial_port", default_value="/dev/ttyUSB0"),
             DeclareLaunchArgument("joy_device_id", default_value="0"),
+            DeclareLaunchArgument("kinect_driver_mode", default_value="modular"),
             DeclareLaunchArgument(
                 "bridge_params_file",
                 default_value=PathJoinSubstitution(
@@ -48,6 +35,12 @@ def generate_launch_description() -> LaunchDescription:
                 "imu_filter_params_file",
                 default_value=PathJoinSubstitution(
                     [FindPackageShare("talus_bringup"), "config", "imu_filter.yaml"]
+                ),
+            ),
+            DeclareLaunchArgument(
+                "frames_file",
+                default_value=PathJoinSubstitution(
+                    [FindPackageShare("talus_bringup"), "config", "frames.yaml"]
                 ),
             ),
             DeclareLaunchArgument(
@@ -66,22 +59,6 @@ def generate_launch_description() -> LaunchDescription:
                     ]
                 ),
             ),
-            DeclareLaunchArgument("imu_parent_frame", default_value="base_link"),
-            DeclareLaunchArgument("imu_frame", default_value="imu_link"),
-            DeclareLaunchArgument("imu_x", default_value="0.0"),
-            DeclareLaunchArgument("imu_y", default_value="0.0"),
-            DeclareLaunchArgument("imu_z", default_value="0.0"),
-            DeclareLaunchArgument("imu_roll", default_value="0.0"),
-            DeclareLaunchArgument("imu_pitch", default_value="0.0"),
-            DeclareLaunchArgument("imu_yaw", default_value="0.0"),
-            DeclareLaunchArgument("camera_parent_frame", default_value="base_link"),
-            DeclareLaunchArgument("camera_frame", default_value="camera_link"),
-            DeclareLaunchArgument("camera_x", default_value="0.0"),
-            DeclareLaunchArgument("camera_y", default_value="0.0"),
-            DeclareLaunchArgument("camera_z", default_value="0.0"),
-            DeclareLaunchArgument("camera_roll", default_value="0.0"),
-            DeclareLaunchArgument("camera_pitch", default_value="0.0"),
-            DeclareLaunchArgument("camera_yaw", default_value="0.0"),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     PathJoinSubstitution(
@@ -91,15 +68,8 @@ def generate_launch_description() -> LaunchDescription:
                 launch_arguments={
                     "bridge_params_file": bridge_params_file,
                     "imu_filter_params_file": imu_filter_params_file,
+                    "frames_file": frames_file,
                     "serial_port": serial_port,
-                    "imu_parent_frame": imu_parent_frame,
-                    "imu_frame": imu_frame,
-                    "imu_x": imu_x,
-                    "imu_y": imu_y,
-                    "imu_z": imu_z,
-                    "imu_roll": imu_roll,
-                    "imu_pitch": imu_pitch,
-                    "imu_yaw": imu_yaw,
                 }.items(),
             ),
             IncludeLaunchDescription(
@@ -123,14 +93,8 @@ def generate_launch_description() -> LaunchDescription:
                 ),
                 condition=IfCondition(enable_kinect),
                 launch_arguments={
-                    "camera_parent_frame": camera_parent_frame,
-                    "camera_frame": camera_frame,
-                    "camera_x": camera_x,
-                    "camera_y": camera_y,
-                    "camera_z": camera_z,
-                    "camera_roll": camera_roll,
-                    "camera_pitch": camera_pitch,
-                    "camera_yaw": camera_yaw,
+                    "frames_file": frames_file,
+                    "driver_mode": kinect_driver_mode,
                 }.items(),
             ),
         ]

@@ -83,6 +83,7 @@ Pacotes confirmados no overlay do `raspi`:
 - o bring-up padrao de teleop usa `talus_bringup`
 - o script operacional principal no `raspi` passa a ser `~/talus-droid/scripts/talus-up`
 - o perfil principal para testes de chao e `floor_test`
+- o perfil `odom_test` passa a ser o smoke test headless de odometria visual
 - o startup opt-in fica modelado por `~/talus-droid/systemd/talus-bringup.service`
 - o arquivo de toggles do service fica em `~/talus-droid/systemd/talus-bringup.env`
 - o sketch oficial do Nano fica em `~/talus-droid/firmware/arduino-nano/arduino-nano.ino`
@@ -99,7 +100,9 @@ Pacotes confirmados no overlay do `raspi`:
 - encoder esquerdo apresentou comportamento suspeito nos testes anteriores e nao deve ser tratado como bloqueador desta fase
 - a IMU crua sai em `/imu/raw` e `/imu/data_raw`
 - a IMU filtrada alvo do bringup sai em `/imu/data`
-- o `talus_bringup` ainda precisa receber os offsets reais de `base_link -> imu_link` e `base_link -> camera_link`
+- os frames estaticos agora ficam centralizados em `src/talus_bringup/config/frames.yaml`
+- os offsets reais de `base_link -> imu_link` e `base_link -> camera_link` ainda precisam ser medidos
+- os frames opticos do Kinect ficam em `kinect_rgb_optical_frame` e `kinect_depth_optical_frame`
 
 ## RTAB-Map
 
@@ -108,6 +111,7 @@ Pacotes confirmados no overlay do `raspi`:
   - `/image_raw`
   - `/depth/image_raw`
   - `/camera_info`
+- o bringup atual privilegia o modo modular do Kinect para reduzir CPU e evitar `/points` por padrao
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`
 - nesse experimento apareceram:
   - warnings de `Did not receive data since 5 seconds`

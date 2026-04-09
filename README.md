@@ -87,11 +87,13 @@ Perfis disponiveis:
 - `floor_test`: base + IMU filtrada + teleop opcional + Kinect opcional
 - `base`: bridge serial + TF minimo + filtro de IMU
 - `teleop`: joystick + `teleop_twist_joy`
-- `kinect`: Kinect unificado
+- `kinect`: Kinect por bringup
+- `odom_test`: base + IMU + Kinect + odometria visual headless
 - `slam`: RTAB-Map em launch separado
 
 O script detecta joystick e Kinect em modo `auto` e nao sobe esses subsistemas se os devices nao estiverem presentes.
 No startup por `systemd`, o arquivo `talus-bringup.env` tambem pode definir `TALUS_DEVICE_SETTLE_SECS` para aguardar alguns segundos antes da deteccao de USB.
+Para o Kinect, o modo default do bringup passou a ser `modular`, configuravel por `TALUS_KINECT_DRIVER_MODE=modular|unified`.
 
 ### Startup opt-in com systemd
 
@@ -177,6 +179,10 @@ Frames esperados:
 - `base_link`
 - `imu_link`
 - `camera_link`
+- `kinect_rgb_optical_frame`
+- `kinect_depth_optical_frame`
+
+Os frames estaticos agora ficam centralizados em [frames.yaml](/home/felip/repos/talus-droid/src/talus_bringup/config/frames.yaml). Os offsets default de `base_link -> imu_link` e `base_link -> camera_link` ainda sao placeholders e devem ser medidos no hardware.
 
 ### Firmware do Arduino Nano
 
@@ -319,6 +325,8 @@ Tópicos observados com o nó unificado:
 /tf_static
 /tilt_angle
 ```
+
+O bringup atual do robo usa por default os nos modulares `ros2_kinect_rgb` e `ros2_kinect_depth`, remapeados para `/image_raw`, `/depth/image_raw`, `/camera_info` e `/depth/camera_info`. O executavel `kinect_ros2_node` segue disponivel como fallback via `TALUS_KINECT_DRIVER_MODE=unified`.
 
 ## Testes recomendados após subir os nós
 
