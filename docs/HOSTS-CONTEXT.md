@@ -61,8 +61,12 @@ Pacotes confirmados no overlay do `raspi`:
 - os topicos comprimidos do Kinect foram observados pela rede
 - `rqt` no notebook visualizou os topicos comprimidos com fluidez melhor que o RViz
 - a bridge serial antiga e o firmware antigo responderam a testes de `cmd_vel`, timeout e reconexao
+- a bridge serial empacotada, o firmware novo do Nano e o bringup com joystick foram validados em hardware
+- `floor_test` foi validado em bancada e no chao com a base respondendo a `/cmd_vel`
 - o novo workspace com `talus_base` e `talus_bringup` ja compilou com `colcon` no `raspi`
 - o `arduino-cli` no `raspi` ja recebeu o core `arduino:avr`
+- o pipeline headless `base + IMU + Kinect + RTAB-Map` ja subiu com sucesso no `raspi`
+- o `odom_test` ja foi validado como smoke test de odometria visual headless
 
 ## Transporte de imagem
 
@@ -76,6 +80,7 @@ Pacotes confirmados no overlay do `raspi`:
 - para visualizacao remota, usar preferencialmente:
   - `rqt` para imagem
   - RViz para `TF`, `PointCloud2` e mapa
+- a point cloud `/points` foi medida como muito pesada para uso remoto constante e nao deve ser tratada como entrada padrao do pipeline de SLAM neste momento
 
 ## Base serial atual
 
@@ -103,6 +108,8 @@ Pacotes confirmados no overlay do `raspi`:
 - os frames estaticos agora ficam centralizados em `src/talus_bringup/config/frames.yaml`
 - os offsets reais de `base_link -> imu_link` e `base_link -> camera_link` ainda precisam ser medidos
 - os frames opticos do Kinect ficam em `kinect_rgb_optical_frame` e `kinect_depth_optical_frame`
+- o `yaw` da IMU filtrada nao deve ser tratado como heading absoluto, porque o sensor atual nao tem magnetometro
+- o service `talus-bringup.service` ja sobe no boot, mas os testes operacionais mais recentes foram feitos manualmente com `scripts/talus-up`
 
 ## RTAB-Map
 
@@ -112,11 +119,16 @@ Pacotes confirmados no overlay do `raspi`:
   - `/depth/image_raw`
   - `/camera_info`
 - o bringup atual privilegia `kinect_ros2_node` com point cloud desligada por patch/CLI; o modo modular ficou apenas experimental
+- o modo `modular` falhou em hardware real com `LIBUSB_ERROR_BUSY`, entao o caminho operacional atual e o driver unificado
+- o helper `scripts/apply-kinect-patches` e parte do fluxo de preparacao do fork no `raspi`
+- o perfil `slam` nao deve ser tratado como bringup completo sozinho; a referencia operacional atual e subir `floor_test` e depois `slam`
+- o `odom_test` sem `rgbd_sync` ficou mais estavel que a variante com `rgbd_sync=true` nos testes preliminares
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`
 - nesse experimento apareceram:
   - warnings de `Did not receive data since 5 seconds`
   - indicios de problemas de sincronizacao
   - spam de `VWDictionary.cpp::addWordRef()`
+- os dois relatorios atuais da frente Kinect/RTAB-Map ficam em `docs/reports/2026-04-08-kinect-rtabmap-smoke.md` e `docs/reports/2026-04-08-odom-kinect-rtabmap-round2.md`
 
 ## Rede observada no `raspi`
 

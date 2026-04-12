@@ -44,6 +44,17 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
 └── docs/
 ```
 
+## Documentacao de testes
+
+Relatorios recentes desta frente:
+
+- [2026-04-08-kinect-rtabmap-smoke.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-kinect-rtabmap-smoke.md)
+- [2026-04-08-odom-kinect-rtabmap-round2.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-odom-kinect-rtabmap-round2.md)
+
+Trilha viva da frente atual:
+
+- [TEST-TRACK-KINECT-IMU-TF.md](/home/felip/repos/talus-droid/docs/TEST-TRACK-KINECT-IMU-TF.md)
+
 ## Setup rápido
 
 ### 1. Ambiente ROS
