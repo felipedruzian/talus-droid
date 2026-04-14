@@ -31,6 +31,7 @@ Nao usar este arquivo para roadmap do projeto. Ele deve registrar apenas fatos o
 - executa joystick, bridge serial, Kinect e RTAB-Map
 - `arduino-cli` disponivel em `/home/felip/.local/bin/arduino-cli`
 - `colcon` disponivel no ambiente ROS
+- `~/.bashrc` ja carrega `source /opt/ros/jazzy/setup.bash`, `ROS_DOMAIN_ID=42`, `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` e `PATH="$HOME/.local/bin:$PATH"`
 
 ## ROS e workspace
 
@@ -91,6 +92,8 @@ Pacotes confirmados no overlay do `raspi`:
 - o perfil `odom_test` passa a ser o smoke test headless de odometria visual
 - o startup opt-in fica modelado por `~/talus-droid/systemd/talus-bringup.service`
 - o arquivo de toggles do service fica em `~/talus-droid/systemd/talus-bringup.env`
+- o service atual no `raspi` injeta `ROS_DOMAIN_ID=42` e `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` via `talus-bringup.env`
+- o service foi observado ativo em `floor_test`, com `enable_kinect=true` e `enable_teleop=false`
 - o sketch oficial do Nano fica em `~/talus-droid/firmware/arduino-nano/arduino-nano.ino`
 - o contrato serial alvo atual entre Pi e Nano e:
   - `PING`
@@ -107,6 +110,10 @@ Pacotes confirmados no overlay do `raspi`:
 - a IMU filtrada alvo do bringup sai em `/imu/data`
 - os frames estaticos agora ficam centralizados em `src/talus_bringup/config/frames.yaml`
 - os offsets reais de `base_link -> imu_link` e `base_link -> camera_link` ainda precisam ser medidos
+- a primeira estimativa levantada para o `frames.yaml` passou a ser:
+  - `imu.xyz = [-0.07, -0.03, 0.01]`
+  - `imu.rpy = [0.0, 0.0, 3.14159265359]`
+  - `camera_mount.xyz = [0.13, 0.0, 0.08]`
 - os frames opticos do Kinect ficam em `kinect_rgb_optical_frame` e `kinect_depth_optical_frame`
 - o `yaw` da IMU filtrada nao deve ser tratado como heading absoluto, porque o sensor atual nao tem magnetometro
 - o service `talus-bringup.service` ja sobe no boot, mas os testes operacionais mais recentes foram feitos manualmente com `scripts/talus-up`
