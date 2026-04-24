@@ -44,6 +44,12 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
 └── docs/
 ```
 
+## Workflow e Kanban (TCC2)
+
+O gerenciamento de tarefas do TCC2 migrou oficialmente para o **Trello** como *Single Source of Truth*. O arquivo Kanban no Obsidian (`TCC2-Kanban.md`) atua apenas como um cache de leitura passiva e registro histórico.
+
+Para sincronizar as mudanças do Trello para o Obsidian localmente, utilize o comando `/trello-sync` no OpenCode. Ele buscará o estado atual do board e atualizará o arquivo MD no vault automaticamente.
+
 ## Documentacao de testes
 
 Relatorios recentes desta frente:
