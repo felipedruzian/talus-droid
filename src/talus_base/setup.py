@@ -1,12 +1,13 @@
 from glob import glob
-from setuptools import setup
+from setuptools import find_packages, setup
 
 package_name = "talus_base"
+package_glob = "talus_base.*"
 
 setup(
     name=package_name,
     version="0.1.0",
-    packages=[package_name],
+    packages=find_packages(include=[package_name, package_glob]),
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
@@ -23,6 +24,8 @@ setup(
     entry_points={
         "console_scripts": [
             "talus_base_bridge = talus_base.serial_bridge:main",
+            "talus_kinect_validate = talus_base.kinect_validation.runner:main",
+            "talus_kinect_sample_image = talus_base.kinect_validation.sampler:main",
         ],
     },
 )

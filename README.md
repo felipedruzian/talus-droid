@@ -2,11 +2,13 @@
 
 Plataforma experimental de robô de serviço baseada em **Raspberry Pi + Arduino Nano + Kinect v1**, integrada ao ecossistema Talus.
 
+> **Nota de nomenclatura:** hoje existem dois contextos chamados "Talus". O host `talus` e o PC/homeserver da sala, associado ao repositorio `talus-core` e aos servicos pessoais. O **Talus-Droid** e este projeto de robo/corpo fisico do assistente, executado no host embarcado `raspi`. Por enquanto o nome do repositorio fica como esta, mas futuras opcoes sao renomear o robo ou o repositorio para reduzir ambiguidade.
+
 Este repositório representa o estado **mínimo restaurado e validado** do ambiente usado para retomar o ponto funcional do TCC1 e preparar os próximos testes do TCC2.
 
 O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a base tambem foi reorganizada em pacotes ROS 2 (`talus_base` e `talus_bringup`) com um contrato serial novo e unico entre Raspberry Pi e Arduino Nano, um bringup em camadas para testes de chao e um filtro de IMU no padrao ROS.
 
-## Estado atual validado
+## Baseline restaurado e gate atual
 
 No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado com sucesso:
 
@@ -22,6 +24,8 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
   - tilt
   - LED
 - `kinect_ros2_node` também executando e publicando tópicos unificados
+
+Nota de checkpoint: a frente atual reabriu a validação do Kinect RGB-D antes de continuar VO/SLAM. Em 2026-04-29, depth segue publicando amostras reais, mas RGB falha com frequência no nó unificado; por isso `odom_test`, VO e RTAB-Map ficam bloqueados até o gate RGB-D voltar a ser estável.
 
 ## Hardware usado
 
@@ -46,9 +50,11 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
 
 ## Workflow e Kanban (TCC2)
 
-O gerenciamento de tarefas do TCC2 migrou oficialmente para o **Trello** como *Single Source of Truth*. O arquivo Kanban no Obsidian (`TCC2-Kanban.md`) atua apenas como um cache de leitura passiva e registro histórico.
+O gerenciamento de tarefas do TCC2 migrou oficialmente para o **Trello** como *Single Source of Truth*. O arquivo Kanban no Obsidian (`TCC2-Kanban.md`) atua apenas como cache de leitura passiva e registro histórico.
 
-Para sincronizar as mudanças do Trello para o Obsidian localmente, utilize o comando `/trello-sync` no OpenCode. Ele buscará o estado atual do board e atualizará o arquivo MD no vault automaticamente.
+Para criar, mover ou atualizar tarefas, use o MCP `trello` no OpenCode com apoio da skill `trello-tcc`. Para sincronizar o cache do Trello para o Obsidian localmente, utilize `/trello-sync`; ele atualiza o Markdown no vault, mas não é o caminho de edição.
+
+Contexto operacional versionado: `/home/felip/repos/TCC-KANBAN.md`.
 
 ## Documentacao de testes
 
@@ -56,10 +62,12 @@ Relatorios recentes desta frente:
 
 - [2026-04-08-kinect-rtabmap-smoke.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-kinect-rtabmap-smoke.md)
 - [2026-04-08-odom-kinect-rtabmap-round2.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-odom-kinect-rtabmap-round2.md)
+- [2026-04-27-kinect-validation.md](/home/felip/repos/talus-droid/docs/reports/2026-04-27-kinect-validation.md)
 
 Trilha viva da frente atual:
 
 - [TEST-TRACK-KINECT-IMU-TF.md](/home/felip/repos/talus-droid/docs/TEST-TRACK-KINECT-IMU-TF.md)
+- [Procedimento de validação diagnóstica do Kinect](/home/felip/repos/talus-droid/docs/diagnostics/kinect-validation.md) — suporte opcional de build/test no host `talus`; validacao real de hardware continua sendo no `raspi`
 
 ## Setup rápido
 

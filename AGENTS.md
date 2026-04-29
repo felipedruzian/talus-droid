@@ -42,6 +42,7 @@ Talus-Droid e a base pratica do TCC para um robo de servico/domestico com:
 - os topicos comprimidos do Kinect ja foram validados pela rede
 - `rqt`/`rqt_image_view` funcionaram melhor que o RViz para imagem remota
 - RTAB-Map esta instalado no `raspi`, mas ainda nao teve a visualizacao consolidada no RViz2
+- checkpoint 2026-04-29: a frente atual voltou para validacao RGB-D do Kinect; depth publica, mas RGB falha com frequencia no driver unificado, entao `odom_test`/VO/SLAM seguem bloqueados ate novo gate estavel
 
 ## Cuidados atuais
 
@@ -65,10 +66,19 @@ Talus-Droid e a base pratica do TCC para um robo de servico/domestico com:
 
 ## Prioridades do momento
 
-1. validar a nova bridge serial empacotada, o firmware do Nano e o bring-up com joystick no `raspi`
-2. continuar os testes com RTAB-Map e RViz2 para chegar a testes de SLAM o quanto antes
-3. revisar o fork `KinectV1-Ros2` para decidir entre no unificado e nos essenciais para SLAM
-4. documentar os experimentos e as decisoes sem duplicar contexto desnecessario entre arquivos
+1. estabilizar/validar RGB-D simultaneo do Kinect no `raspi`
+2. validar a nova bridge serial empacotada, o firmware do Nano e o bring-up com joystick no `raspi`
+3. continuar os testes com RTAB-Map e RViz2 somente depois do gate RGB-D
+4. revisar o fork `KinectV1-Ros2` para decidir entre no unificado e nos essenciais para SLAM
+5. documentar os experimentos e as decisoes sem duplicar contexto desnecessario entre arquivos
+
+## TCC / Trello
+
+- Fonte da verdade para tarefas do TCC2: Trello board `TCC2`.
+- Contexto operacional versionado: `/home/felip/repos/TCC-KANBAN.md`.
+- Edicoes vivas de cards devem usar o MCP `trello` no OpenCode com apoio da skill `trello-tcc`.
+- `/trello-sync` apenas exporta cache read-only para `/home/felip/syncthing/vault/Facul/TCC/TCC2-Kanban.md`; nao edite esse cache como fonte primaria.
+- Novas pendencias de teste/monografia encontradas neste repo devem virar cards Trello quando forem relevantes para planejamento.
 
 ## Fora do escopo imediato
 

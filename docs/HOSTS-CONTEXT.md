@@ -6,6 +6,17 @@ Nao usar este arquivo para roadmap do projeto. Ele deve registrar apenas fatos o
 
 ## Hosts
 
+## Nota de nomenclatura
+
+O nome "Talus" tem dois usos historicos que podem causar confusao:
+
+- `talus`: PC/homeserver da sala, associado ao ecossistema pessoal e ao repositorio `talus-core`.
+- `talus-droid`: este repositorio/projeto do robo, originalmente pensado como o corpo fisico do assistente pessoal Talus.
+
+Neste repositorio, quando a documentacao falar em validacao de hardware do robo, o host autoritativo e o `raspi`. O host `talus` pode ser usado como apoio de desenvolvimento, build e testes sem hardware, mas nao substitui o `raspi` para Kinect, Arduino, joystick, motores ou SLAM com sensor real.
+
+Manter o nome atual por enquanto. Se a ambiguidade continuar atrapalhando, opcoes futuras sao renomear o robo, o repositorio, ou padronizar um nome operacional distinto para o corpo fisico.
+
 ### Notebook operador
 
 - host observado: `aiquitude`
@@ -68,6 +79,8 @@ Pacotes confirmados no overlay do `raspi`:
 - o `arduino-cli` no `raspi` ja recebeu o core `arduino:avr`
 - o pipeline headless `base + IMU + Kinect + RTAB-Map` ja subiu com sucesso no `raspi`
 - o `odom_test` ja foi validado como smoke test de odometria visual headless
+
+Nota de checkpoint em 2026-04-29: essas validacoes continuam registradas como baseline historico, mas a frente atual voltou para a camada Kinect porque RGB-D simultaneo ficou instavel. `odom_test`, VO e RTAB-Map nao devem ser tratados como liberados ate o preflight RGB-D voltar a passar de forma repetivel.
 
 ## Transporte de imagem
 

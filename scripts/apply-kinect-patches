@@ -15,12 +15,15 @@ import sys
 
 root = Path(sys.argv[1])
 component_path = root / "src/kinect_ros2/src/kinect_ros2_component.cpp"
+header_path = root / "src/kinect_ros2/include/kinect_ros2/kinect_ros2_component.hpp"
 node_path = root / "src/kinect_ros2/src/kinect_ros2_node.cpp"
 
 component = component_path.read_text()
+header = header_path.read_text()
 node = node_path.read_text()
 
 component_changed = False
+header_changed = False
 node_changed = False
 
 component_replacements = [
@@ -40,6 +43,112 @@ for old, new in component_replacements:
     if old in component:
         component = component.replace(old, new, 1)
         component_changed = True
+
+if "FREENECT_VIDEO_RGB" not in component:
+    marker = "    freenect_set_depth_callback(fn_dev_, depth_cb_static);\n"
+    insert = (
+        "    if (freenect_set_video_mode(fn_dev_,\n"
+        "                                freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB)) < 0)\n"
+        "    {\n"
+        "      freenect_shutdown(fn_ctx_);\n"
+        "      throw std::runtime_error(\"Failed to set RGB video mode\");\n"
+        "    }\n\n"
+        "    freenect_set_depth_callback(fn_dev_, depth_cb_static);\n"
+    )
+    if marker not in component:
+        raise SystemExit("Could not find Kinect video callback marker")
+    component = component.replace(marker, insert, 1)
+    component_changed = True
+
+if "std::atomic_bool running_;" not in header:
+    include_marker = "#include <mutex>\n"
+    include_insert = "#include <atomic>\n#include <mutex>\n#include <thread>\n"
+    if include_marker not in header:
+        raise SystemExit("Could not find Kinect header include marker")
+    header = header.replace(include_marker, include_insert, 1)
+
+    callback_marker = "  void timer_callback();\n"
+    callback_insert = "  void timer_callback();\n  void freenect_loop();\n"
+    if callback_marker not in header:
+        raise SystemExit("Could not find Kinect timer callback marker")
+    header = header.replace(callback_marker, callback_insert, 1)
+
+    member_marker = "  std::mutex mutex_;\n"
+    member_insert = "  std::atomic_bool running_;\n  std::thread event_thread_;\n  std::mutex mutex_;\n"
+    if member_marker not in header:
+        raise SystemExit("Could not find Kinect mutex member marker")
+    header = header.replace(member_marker, member_insert, 1)
+    header_changed = True
+
+if "void KinectRosComponent::freenect_loop()" not in component:
+    init_marker = "        freenect_rgb_pointer_(nullptr)"
+    init_insert = "        freenect_rgb_pointer_(nullptr),\n        running_(false)"
+    if init_marker not in component:
+        raise SystemExit("Could not find Kinect constructor initializer marker")
+    component = component.replace(init_marker, init_insert, 1)
+
+    start_marker = "    timer_ = create_wall_timer(1ms, std::bind(&KinectRosComponent::timer_callback, this));\n"
+    start_insert = (
+        "    running_ = true;\n"
+        "    event_thread_ = std::thread(&KinectRosComponent::freenect_loop, this);\n"
+        "    timer_ = create_wall_timer(1ms, std::bind(&KinectRosComponent::timer_callback, this));\n"
+    )
+    if start_marker not in component:
+        raise SystemExit("Could not find Kinect timer start marker")
+    component = component.replace(start_marker, start_insert, 1)
+
+    destructor_marker = (
+        "  KinectRosComponent::~KinectRosComponent()\n"
+        "  {\n"
+        "    RCLCPP_INFO(get_logger(), \"Shutting down Kinect...\");\n"
+        "    freenect_stop_depth(fn_dev_);\n"
+        "    freenect_stop_video(fn_dev_);\n"
+        "    freenect_close_device(fn_dev_);\n"
+        "    freenect_shutdown(fn_ctx_);\n"
+        "  }\n"
+    )
+    destructor_insert = (
+        "  KinectRosComponent::~KinectRosComponent()\n"
+        "  {\n"
+        "    RCLCPP_INFO(get_logger(), \"Shutting down Kinect...\");\n"
+        "    running_ = false;\n"
+        "    if (event_thread_.joinable()) {\n"
+        "      event_thread_.join();\n"
+        "    }\n"
+        "    freenect_stop_depth(fn_dev_);\n"
+        "    freenect_stop_video(fn_dev_);\n"
+        "    freenect_close_device(fn_dev_);\n"
+        "    freenect_shutdown(fn_ctx_);\n"
+        "  }\n"
+    )
+    if destructor_marker not in component:
+        raise SystemExit("Could not find Kinect destructor marker")
+    component = component.replace(destructor_marker, destructor_insert, 1)
+
+    timer_marker = "  void KinectRosComponent::timer_callback()\n  {\n    freenect_process_events(fn_ctx_);\n"
+    timer_insert = "  void KinectRosComponent::timer_callback()\n  {\n"
+    if timer_marker not in component:
+        raise SystemExit("Could not find Kinect timer process marker")
+    component = component.replace(timer_marker, timer_insert, 1)
+
+    loop_marker = "  void KinectRosComponent::timer_callback()\n"
+    loop_insert = (
+        "  void KinectRosComponent::freenect_loop()\n"
+        "  {\n"
+        "    while (running_ && rclcpp::ok()) {\n"
+        "      int ret = freenect_process_events(fn_ctx_);\n"
+        "      if (ret < 0 && running_) {\n"
+        "        RCLCPP_ERROR(get_logger(), \"freenect_process_events failed: %d\", ret);\n"
+        "        break;\n"
+        "      }\n"
+        "    }\n"
+        "  }\n\n"
+        "  void KinectRosComponent::timer_callback()\n"
+    )
+    if loop_marker not in component:
+        raise SystemExit("Could not find Kinect timer method marker")
+    component = component.replace(loop_marker, loop_insert, 1)
+    component_changed = True
 
 if "--disable-pointcloud" not in node:
     marker = "int main(int argc, char * argv[])\n{\n"
@@ -82,10 +191,12 @@ if "--disable-pointcloud" not in node:
 
 if component_changed:
     component_path.write_text(component)
+if header_changed:
+    header_path.write_text(header)
 if node_changed:
     node_path.write_text(node)
 
-if component_changed or node_changed:
+if component_changed or header_changed or node_changed:
     print("Applied Kinect patch logic")
 else:
     print("Kinect patch already applied")
