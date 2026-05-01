@@ -7,3 +7,7 @@ __pycache__/
 .vscode/
 .codex
 src/KinectV1-Ros2
+artifacts/
+docs/superpowers/
+thoughts/
+SESSION-HANDOFF.md
