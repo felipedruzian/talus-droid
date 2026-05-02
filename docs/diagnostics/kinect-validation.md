@@ -11,7 +11,34 @@ Validate Kinect v1 bring-up independently from IMU, visual odometry, and RTAB-Ma
 
 This diagnostic flow is part of the Talus-Droid robot platform. Optional build/test support may run on the Talus host, but real Kinect hardware validation remains `raspi`-only.
 
-Current gate as of 2026-04-29: run `preflight` before any larger battery or `odom_test`. If `preflight` fails with `RGB_TIMEOUT`, keep the work in Kinect/USB/driver diagnostics and do not continue to VO/SLAM.
+Current gate as of 2026-05-02: validate Kinect RGB-D stability before any `odom_test`, RTAB-Map, VO, or SLAM conclusion. If `preflight` fails with `RGB_TIMEOUT`, `KINECT_OPEN_FAIL`, `USB_BUSY`, or `USB_MISSING`, keep the work in Kinect/USB/libfreenect/driver diagnostics and do not continue to VO/SLAM.
+
+## Preflight definition
+
+In this project, **preflight** is the minimum readiness check for the Kinect before any higher-level test.
+
+It means:
+
+- the unified Kinect driver starts on `raspi`;
+- expected topics are visible;
+- `/image_raw` publishes at least one real RGB message;
+- `/depth/image_raw` publishes at least one real depth message;
+- the Kinect USB camera remains present before and after the round;
+- cleanup leaves no relevant Kinect/launch/TF processes alive.
+
+Preflight has two valid uses:
+
+- as a **validation gate**: if it passes, a repeated battery may be run before testing higher layers;
+- as an **investigation target**: if it fails, the failure is still a valid diagnostic result and should be captured as a run bundle.
+
+The run bundle standard is documented in [raspi-experiment-flow.md](raspi-experiment-flow.md). New relevant Kinect tests should use:
+
+```text
+artifacts/testlogs/YYYY-MM-DD-kinect-validation/raspi-vNN-description/
+  experiment.yaml
+  notes.md
+  preflight/round-001/
+```
 
 ## Environment
 
@@ -27,9 +54,13 @@ export TALUS_KINECT_ENABLE_POINT_CLOUD=false
 
 ## Artifact root
 
+Use a dedicated run bundle for new tests. Example:
+
 ```text
-artifacts/testlogs/2026-04-27-kinect-validation/raspi/
+artifacts/testlogs/2026-05-01-kinect-validation/raspi-v10-baseline-medium/
 ```
+
+Older artifacts remain under their original paths unless explicitly reorganized with updated report links.
 
 ## Build
 
@@ -42,7 +73,7 @@ source install/setup.bash
 
 ## Phase 1: Snapshot and isolated battery
 
-Use this phase only after `preflight` passes or when explicitly running a Kinect-focused diagnostic battery.
+Use this phase after `preflight` passes, or when explicitly running a Kinect-focused diagnostic battery to characterize a failing condition. In the second case, the run is a Kinect investigation, not a validation of VO/SLAM readiness.
 
 ```bash
 ros2 run talus_base talus_kinect_validate isolated --rounds 10
@@ -51,7 +82,7 @@ ros2 run talus_base talus_kinect_validate isolated --rounds 10
 Initial criterion:
 
 - ideal: 10/10 `PASS`
-- acceptable to keep investigating higher layers: at least 8/10 `PASS`
+- acceptable to consider controlled investigation of higher layers: at least 8/10 `PASS`
 - below 8/10: continue focusing on USB/driver/cleanup, not SLAM
 
 ## Phase 2: Settle matrix
@@ -80,7 +111,8 @@ ros2 run talus_base talus_kinect_validate usb-reset
 ## Phase 4: Preflight before larger tests
 
 ```bash
-ros2 run talus_base talus_kinect_validate preflight
+ros2 run talus_base talus_kinect_validate preflight \
+  --artifact-root artifacts/testlogs/YYYY-MM-DD-kinect-validation/raspi-vNN-description
 ```
 
 Only if preflight passes:
@@ -92,6 +124,8 @@ ros2 launch talus_bringup slam_rtabmap.launch.py rtabmap_viz:=false rviz:=false
 ```
 
 If preflight fails, abort the larger test and copy the classification into `docs/reports/2026-04-27-kinect-validation.md`.
+
+If the purpose of the run is Kinect investigation, keep the run active and record the failure in `experiment.yaml` and `notes.md` instead of advancing to VO/SLAM.
 
 ## Classification codes
 

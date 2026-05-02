@@ -130,6 +130,8 @@ Nota de checkpoint em 2026-04-29: essas validacoes continuam registradas como ba
 - os frames opticos do Kinect ficam em `kinect_rgb_optical_frame` e `kinect_depth_optical_frame`
 - o `yaw` da IMU filtrada nao deve ser tratado como heading absoluto, porque o sensor atual nao tem magnetometro
 - o service `talus-bringup.service` ja sobe no boot, mas os testes operacionais mais recentes foram feitos manualmente com `scripts/talus-up`
+- os testes reais no `raspi` devem usar run bundles conforme `docs/diagnostics/raspi-experiment-flow.md`, com `experiment.yaml`, `notes.md` e subpastas do runner em `artifacts/testlogs/...`
+- o `talus` e headless; visualizacao com `rqt`, RViz2, Foxglove ou PlotJuggler deve ser feita no `aiquitude`/notebook com GUI quando necessaria
 
 ## RTAB-Map
 
@@ -141,6 +143,7 @@ Nota de checkpoint em 2026-04-29: essas validacoes continuam registradas como ba
 - o bringup atual privilegia `kinect_ros2_node` com point cloud desligada por patch/CLI; o modo modular ficou apenas experimental
 - o modo `modular` falhou em hardware real com `LIBUSB_ERROR_BUSY`, entao o caminho operacional atual e o driver unificado
 - o helper `scripts/apply-kinect-patches` e parte do fluxo de preparacao do fork no `raspi`
+- a frente Kinect esta em modo `kinect-validation`: falha no preflight bloqueia VO/SLAM, mas e um resultado valido quando o objetivo da run e diagnosticar Kinect/USB/libfreenect/driver
 - o perfil `slam` nao deve ser tratado como bringup completo sozinho; a referencia operacional atual e subir `floor_test` e depois `slam`
 - o `odom_test` sem `rgbd_sync` ficou mais estavel que a variante com `rgbd_sync=true` nos testes preliminares
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`

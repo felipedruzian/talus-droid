@@ -68,6 +68,7 @@ Trilha viva da frente atual:
 
 - [TEST-TRACK-KINECT-IMU-TF.md](/home/felip/repos/talus-droid/docs/TEST-TRACK-KINECT-IMU-TF.md)
 - [Procedimento de validação diagnóstica do Kinect](/home/felip/repos/talus-droid/docs/diagnostics/kinect-validation.md) — suporte opcional de build/test no host `talus`; validacao real de hardware continua sendo no `raspi`
+- [Fluxo de experimentos no `raspi`](/home/felip/repos/talus-droid/docs/diagnostics/raspi-experiment-flow.md) — padrao de run bundle com `experiment.yaml`, `notes.md` e artefatos em `artifacts/testlogs/...`
 
 ## Setup rápido
 

@@ -203,6 +203,101 @@ Classificação provável: limitação/falha na camada Kinect/USB/libfreenect pa
 
 Decisão operacional: não liberar `odom_test` ainda. As próximas opções objetivas são testar hub USB energizado, testar outro cabo/fonte/Kinect, ou implementar um experimento de driver de baixa banda/ordem de streams com teste automatizado antes.
 
+## Reorganização do fluxo de evidências — 2026-05-02
+
+Durante a retomada da frente Kinect, foram usadas worktrees no `talus` para
+separar diagnostico, experimento e documentacao. A sincronizacao com o `raspi`
+mostrou que o problema principal nao era apenas rodar mais testes: era preciso
+organizar melhor branch, workspace operacional, fork Kinect aninhado e artefatos
+para que os proximos testes fossem reprodutiveis e interpretaveis por agentes e
+por humanos.
+
+O fluxo oficial para novos testes reais no `raspi` passa a ser o run bundle
+documentado em `docs/diagnostics/raspi-experiment-flow.md`:
+
+```text
+artifacts/testlogs/<YYYY-MM-DD-frente>/<host>-vNN-<descricao>/
+  experiment.yaml
+  notes.md
+  <grupos do runner>/round-XXX/
+```
+
+Para a frente atual, a convencao preferida e:
+
+```text
+artifacts/testlogs/YYYY-MM-DD-kinect-validation/raspi-vNN-<hipotese-ou-condicao>/
+```
+
+O termo `preflight` tambem foi formalizado: e o teste minimo de prontidao do
+Kinect, no qual o driver unificado sobe, `/image_raw` e `/depth/image_raw`
+entregam mensagens reais, USB permanece presente e cleanup termina limpo. Quando
+o objetivo e VO/SLAM, falha no preflight bloqueia a etapa superior. Quando o
+objetivo e investigar o Kinect, a falha do preflight e o resultado da rodada e
+deve ser registrada no bundle.
+
+## Experimento low-bandwidth descartado como hipótese ativa
+
+A branch `exp/2026-04-29-kinect-low-bandwidth` adicionou uma matriz com variáveis
+`TALUS_KINECT_VIDEO_RESOLUTION`, `TALUS_KINECT_STREAM_START_ORDER` e
+`TALUS_KINECT_STREAM_START_DELAY_MS`. O resultado operacional foi util para
+diagnostico, mas a hipotese `low` nao deve continuar ativa.
+
+Motivo: `FREENECT_RESOLUTION_LOW + FREENECT_VIDEO_RGB` nao e uma combinacao
+suportada pelo `libfreenect`. Nas rodadas `low-*`, o driver abortou em
+`freenect_set_video_mode returned: -1`; portanto a leitura correta e falha de
+modo de video invalido (`KINECT_OPEN_FAIL`), nao instabilidade fisica do Kinect.
+
+Resumo da matriz low-bandwidth:
+
+| Caso | Rodadas | Leitura correta | Observação |
+|---|---:|---|---|
+| `baseline` (`medium`, `depth-first`) | 10 | `1 PASS`, `9 RGB_TIMEOUT` | PASS pontual; nao prova estabilidade |
+| `low-depth-first` | 10 | `KINECT_OPEN_FAIL` | `freenect_set_video_mode=-1` |
+| `low-video-first` | 10 | `KINECT_OPEN_FAIL` | `freenect_set_video_mode=-1` |
+| `low-video-first-delay-250` | 10 | `KINECT_OPEN_FAIL` | `freenect_set_video_mode=-1` |
+| `low-video-first-delay-500` | 10 | `KINECT_OPEN_FAIL` | `freenect_set_video_mode=-1` |
+| `low-depth-first-delay-500` | 10 | `KINECT_OPEN_FAIL` | `freenect_set_video_mode=-1` |
+
+Decisao: nao usar `low` como caminho de investigacao. As proximas hipoteses
+devem focar em `medium`, topologia USB, alimentacao/cabo/hub, comportamento
+nativo do `libfreenect` e ajustes estaveis no driver/fork Kinect.
+
+## Classificação inicial dos artefatos existentes
+
+Os artefatos atuais no `raspi` foram classificados sem mover ou apagar arquivos.
+A politica inicial e manter os caminhos existentes e adicionar metadados somente
+nos runs que continuam relevantes para a narrativa tecnica.
+
+| Frente | Estado | Decisão |
+|---|---|---|
+| `2026-04-27-kinect-validation` | preflights iniciais, cleanup corrigido, RGB ainda falhando | preservar como historico da criacao do gate |
+| `2026-04-29-kinect-rgbd` | inclui `raspi-v7` PASS pontual, `raspi-v8` 1/10 PASS e diagnostico profundo | preservar como evidencia principal da instabilidade |
+| `2026-04-29-kinect-low-bandwidth` | matriz `low` invalida para RGB; baseline medium 1/10 PASS | preservar como historico; nao usar como hipotese ativa |
+| `rescue/2026-05-01-raspi-before-exp-low-bandwidth-sync` | snapshots antes da sincronizacao do `raspi` | preservar ate fechamento da limpeza do fork/branches |
+
+Nenhuma reorganizacao fisica foi executada nesta etapa. Se os artefatos forem
+movidos para `archive/` ou compactados posteriormente, os links deste relatorio
+devem ser atualizados junto.
+
+## Próximos testes recomendados
+
+Continuar na frente `kinect-validation`, usando run bundles. Exemplos de rodadas
+futuras:
+
+```text
+artifacts/testlogs/2026-05-01-kinect-validation/raspi-v10-baseline-medium/
+artifacts/testlogs/2026-05-01-kinect-validation/raspi-v11-other-usb-port/
+artifacts/testlogs/2026-05-02-kinect-validation/raspi-v12-powered-hub/
+```
+
+Cada rodada deve variar uma hipótese por vez e registrar explicitamente:
+
+- topologia USB;
+- fonte/cabo/hub;
+- branch/commit e estado dirty;
+- saída do preflight;
+- decisão de bloquear ou repetir.
+
 ## Checklist de aceite
 
 - [ ] Bateria isolada reproduzível no `raspi`.
@@ -210,5 +305,7 @@ Decisão operacional: não liberar `odom_test` ainda. As próximas opções obje
 - [ ] Classificação explícita de falhas registrada por rodada.
 - [ ] Comparação entre settle padrão, 10s, 30s e 60s.
 - [ ] Decisão documentada sobre reset USB.
+- [x] Fluxo de run bundle definido para novos testes (`experiment.yaml` + `notes.md`).
+- [x] Caminho `low` descartado como hipótese ativa para RGB.
 - [x] Preflight Kinect executado antes dos testes maiores.
 - [x] Conclusão separa Kinect/coleta/odometria/SLAM.
