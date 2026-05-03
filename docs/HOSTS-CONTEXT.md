@@ -80,7 +80,7 @@ Pacotes confirmados no overlay do `raspi`:
 - o pipeline headless `base + IMU + Kinect + RTAB-Map` ja subiu com sucesso no `raspi`
 - o `odom_test` ja foi validado como smoke test de odometria visual headless
 
-Nota de checkpoint em 2026-04-29: essas validacoes continuam registradas como baseline historico, mas a frente atual voltou para a camada Kinect porque RGB-D simultaneo ficou instavel. `odom_test`, VO e RTAB-Map nao devem ser tratados como liberados ate o preflight RGB-D voltar a passar de forma repetivel.
+Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como baseline historico, mas a frente atual voltou para a camada Kinect porque RGB-D simultaneo ficou instavel. A matriz Kinect-only (`raspi-v17-kinect-method-matrix`) mostrou depth OK e RGB/video falhando abaixo ou antes do VO, inclusive com perda no `libfreenect`; `odom_test`, VO e RTAB-Map nao devem ser tratados como liberados ate a cadeia RGB-D voltar a passar de forma repetivel.
 
 ## Transporte de imagem
 
@@ -144,6 +144,7 @@ Nota de checkpoint em 2026-04-29: essas validacoes continuam registradas como ba
 - o modo `modular` falhou em hardware real com `LIBUSB_ERROR_BUSY`, entao o caminho operacional atual e o driver unificado
 - o helper `scripts/apply-kinect-patches` e parte do fluxo de preparacao do fork no `raspi`
 - a frente Kinect esta em modo `kinect-validation`: falha no preflight bloqueia VO/SLAM, mas e um resultado valido quando o objetivo da run e diagnosticar Kinect/USB/libfreenect/driver
+- a matriz Kinect-only `raspi-v17-kinect-method-matrix` reforcou que a falha atual antecede o RTAB-Map: depth publica, mas RGB/video falha em `libfreenect`/ROS Kinect-only
 - o perfil `slam` nao deve ser tratado como bringup completo sozinho; a referencia operacional atual e subir `floor_test` e depois `slam`
 - o `odom_test` sem `rgbd_sync` ficou mais estavel que a variante com `rgbd_sync=true` nos testes preliminares
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`

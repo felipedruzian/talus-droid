@@ -25,7 +25,7 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
   - LED
 - `kinect_ros2_node` também executando e publicando tópicos unificados
 
-Nota de checkpoint: a frente atual reabriu a validação do Kinect RGB-D antes de continuar VO/SLAM. Em 2026-04-29, depth segue publicando amostras reais, mas RGB falha com frequência no nó unificado; por isso `odom_test`, VO e RTAB-Map ficam bloqueados até o gate RGB-D voltar a ser estável.
+Nota de checkpoint: a frente atual reabriu a validação do Kinect RGB-D antes de continuar VO/SLAM. Em 2026-05-02, a matriz Kinect-only mostrou `depth` estável enquanto RGB/video falha ou não entrega frames reais em `libfreenect`/ROS Kinect-only; por isso `odom_test`, VO e RTAB-Map seguem bloqueados até a cadeia RGB-D ficar estável.
 
 ## Hardware usado
 

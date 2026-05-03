@@ -309,3 +309,35 @@ Cada rodada deve variar uma hipótese por vez e registrar explicitamente:
 - [x] Caminho `low` descartado como hipótese ativa para RGB.
 - [x] Preflight Kinect executado antes dos testes maiores.
 - [x] Conclusão separa Kinect/coleta/odometria/SLAM.
+
+## Matriz Kinect-only — 2026-05-02
+
+Raiz de artefatos: `artifacts/testlogs/2026-05-02-kinect-validation/raspi-v17-kinect-method-matrix/`
+
+Objetivo: comparar metodos de subida focados somente no Kinect, sem usar `floor_test` como metodo de teste, para separar instabilidade do sensor/driver de efeitos de VO/RTAB-Map ou do bringup completo da base.
+
+Condicao comum da matriz:
+
+- `talus-bringup.service` parado antes dos testes Kinect-only.
+- Espera de 120s entre metodos para reduzir interferencia de reabertura rapida do Kinect/libfreenect.
+- Point cloud desligada.
+- `ROS_DOMAIN_ID=42` e `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` nos testes ROS.
+- O `floor_test` foi usado apenas no final para restaurar o estado operacional do robo, nao como metodo principal desta matriz.
+
+### Resultado por metodo
+
+| Metodo | Open/start | RGB | Depth | Leitura |
+|---|---|---|---|---|
+| `freenect-camtest` | nativo | video instavel | 619 frames depth | `Stream 80` com 189 linhas de perda; apenas 1 frame de video observado no log sumarizado |
+| `ros2 run kinect_ros2 kinect_ros2_node --disable-pointcloud` | `freenect_start_video=0`, `freenect_start_depth=0` | `0/5 OK`, `5/5 TIMEOUT` | `5/5 OK` | driver abre e inicia streams, mas RGB nao entrega mensagens reais |
+| `ros2 launch talus_bringup kinect.launch.py driver_mode:=unified enable_point_cloud:=false` | `freenect_start_video=0`, `freenect_start_depth=0` | `0/5 OK`, `5/5 TIMEOUT` | `5/5 OK` | mesmo padrao do no ROS direto; launch/TF nao explicam sozinhos |
+| `./scripts/talus-up kinect` | `freenect_start_video=0`, `freenect_start_depth=0` | `0/5 OK`, `5/5 TIMEOUT` | `5/5 OK` | wrapper/ambiente/settle do `talus-up` nao resolve o modo Kinect-only |
+| Restauracao final via `talus-bringup.service` | ativo | OK | OK | estado operacional restaurado; este caminho usa `floor_test` e nao entra como metodo Kinect-only da matriz |
+
+### Interpretacao
+
+A matriz reforca que a instabilidade observada antes do VO/RTAB-Map nao nasce no RTAB-Map. O padrao dominante e: depth entrega frames, enquanto RGB/video nao entrega frames reais no caminho Kinect-only, mesmo quando `freenect_start_video` retorna sucesso.
+
+A evidencia nativa com `freenect-camtest` e especialmente relevante: ha frames de depth e perda persistente no stream de video (`Stream 80`), indicando que a cadeia RGB/video ja apresenta problema abaixo do ROS. A camada ROS reproduz o sintoma como topico `/image_raw` visivel sem mensagens reais, enquanto `/depth/image_raw` publica normalmente.
+
+Conclusao operacional: manter a investigacao em Kinect/USB/libfreenect/fork ROS antes de qualquer nova conclusao sobre VO, RTAB-Map ou SLAM. As proximas perguntas tecnicas sao: RGB-only vs depth-only vs RGB+depth, ordem de inicio dos streams, callbacks RGB/depth no fork e perdas USB/isochronous do stream de video.

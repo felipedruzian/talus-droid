@@ -140,3 +140,15 @@ If the purpose of the run is Kinect investigation, keep the run active and recor
 | `TOPIC_TIMEOUT` | Expected topics did not appear/publish in time |
 | `CLEANUP_FAIL` | Processes remained alive after shutdown |
 | `COLLECTOR_FAIL` | Diagnostic collector/sampler failed |
+
+## Kinect-only method matrix
+
+For Kinect-focused diagnostics, distinguish these layers before attributing failures to VO/RTAB-Map:
+
+1. Native `libfreenect`, for example `freenect-camtest`.
+2. Direct ROS node: `ros2 run kinect_ros2 kinect_ros2_node --disable-pointcloud`.
+3. Talus Kinect-only launch: `ros2 launch talus_bringup kinect.launch.py driver_mode:=unified enable_point_cloud:=false`.
+4. Talus wrapper Kinect-only: `./scripts/talus-up kinect`.
+5. Operational restoration path: `talus-bringup.service` / `floor_test`.
+
+Current observation from `raspi-v17-kinect-method-matrix`: with 120s settle between Kinect-only methods, ROS methods opened and started video/depth successfully, but `/image_raw` timed out `5/5` while `/depth/image_raw` was `5/5 OK`. Native `freenect-camtest` also showed depth frames with persistent video stream packet loss. Treat this as Kinect RGB/video-chain investigation, not RTAB-Map failure.
