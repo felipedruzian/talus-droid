@@ -4,28 +4,35 @@ Este documento define o padrao operacional para testes reais do Talus-Droid no
 `raspi`. O objetivo e manter evidencias rastreaveis para a validacao tecnica e
 para o TCC sem transformar cada teste em um processo pesado demais.
 
-O fluxo atual foi definido durante a frente de validacao do Kinect RGB-D. A regra
-central e: **falhas do Kinect devem ser investigadas como falhas de
-sensor/USB/libfreenect/driver antes de qualquer teste de VO, RTAB-Map ou SLAM**.
+O fluxo atual foi definido durante a frente de validacao do Kinect RGB-D.
+Historicamente, falhas do Kinect eram tratadas como bloqueio antes de VO,
+RTAB-Map ou SLAM. Em 2026-05-10, apos corrigir o GND incorreto entre Arduino e
+Raspberry Pi, a frente `kinect-validation` foi encerrada como bloqueio principal.
+As novas frentes devem separar claramente `motor-validation`,
+`vo-floor-validation` e futuras baterias de RTAB-Map/SLAM.
 
 ## Papel de cada host
 
-| Host | Papel |
-|---|---|
-| `raspi` | Execucao real do robo, coleta de logs e artefatos, ROS nodes |
-| `talus` | Repositorio, planejamento, documentacao, analise textual e automacoes locais |
-| `aiquitude`/notebook com GUI | `rqt`, RViz2, Foxglove/PlotJuggler quando necessario |
+| Host | Caminho | Papel |
+|---|---|---|
+| `raspi` | `/home/felip/talus-droid` | Execucao real do robo, coleta de logs e artefatos, ROS nodes |
+| `talus` | `/home/felip/repos/talus-droid` | Repositorio canonico, planejamento, documentacao, commits e analise textual |
+| `talus` | `/home/felip/repos/_worktrees/talus-droid/<slug>` | Worktrees opcionais para codigo/docs/config isolados |
+| `aiquitude`/notebook com GUI | checkout local quando existir | `rqt`, RViz2, Foxglove/PlotJuggler quando necessario |
 
 O `talus` e headless; nao tratar RViz/rqt nele como fluxo normal de validacao.
 Visualizacao remota e apoio de diagnostico, nao substitui os artefatos gerados no
-`raspi`.
+`raspi`. Artefatos devem nascer no `raspi` e depois ser sincronizados para o repo
+canonico no `talus` sob `artifacts/testlogs/...`.
 
 ## Workspace operacional
 
 - Workspace oficial no `raspi`: `/home/felip/talus-droid`.
+- Repo canonico no `talus`: `/home/felip/repos/talus-droid`.
 - `~/ros2_ws` no `raspi` e legado.
-- Evitar worktrees permanentes no `raspi` enquanto o fluxo de hardware nao estiver
-  estavel. Worktrees continuam uteis no `talus` para desenvolvimento, docs e
+- Evitar worktrees permanentes no `raspi`; o runtime de hardware deve continuar em
+  `/home/felip/talus-droid`. Worktrees ficam no `talus` em
+  `/home/felip/repos/_worktrees/talus-droid/<slug>` para desenvolvimento, docs e
   revisoes paralelas.
 
 ## Run bundle
@@ -63,18 +70,35 @@ artifacts/testlogs/2026-05-02-kinect-validation/raspi-v11-powered-hub/
 YYYY-MM-DD-<frente>/<host>-vNN-<descricao>
 ```
 
-Para a frente atual, usar preferencialmente:
+Frentes usadas recentemente:
 
 ```text
 YYYY-MM-DD-kinect-validation/raspi-vNN-<hipotese-ou-condicao>
+YYYY-MM-DD-motor-validation/raspi-vNN-<condicao>
+YYYY-MM-DD-vo-floor-validation/raspi-vNN-<condicao>
 ```
 
 Exemplos:
 
 - `2026-05-01-kinect-validation/raspi-v10-baseline-medium`
-- `2026-05-01-kinect-validation/raspi-v11-other-usb-port`
-- `2026-05-02-kinect-validation/raspi-v12-powered-hub`
-- `2026-05-02-kinect-validation/raspi-v13-other-cable`
+- `2026-05-10-motor-validation/raspi-v67-suspended-stronger-forward-debug`
+- `2026-05-10-vo-floor-validation/raspi-v73-floor-sync005-conditional-forward`
+
+
+## Checkpoint operacional 2026-05-10
+
+- `kinect-validation` foi encerrada como bloqueio principal apos corrigir o GND
+  incorreto entre Arduino/Raspberry Pi.
+- Hipoteses USB/libfreenect/VL805/xHCI permanecem como historico diagnostico, mas
+  foram rebaixadas sem nova evidencia.
+- `motor-validation`: motores podem ser usados como atuadores open-loop via
+  `/cmd_vel`; Hall/encoder esquerdo esta incompleto e `ENC` nao deve alimentar VO.
+- `vo-floor-validation`: v73 validou VO curta no chao com
+  `approx_sync_max_interval:=0.05`, `/rtabmap/odom` valido e `odom -> base_link`
+  confirmado.
+- Proximas baterias devem focar robustez/continuidade de VO/RTAB-Map, com monitor
+  continuo de `/rtabmap/odom`, `odom -> base_link`, `map -> odom` e
+  `map -> base_link`.
 
 ## `experiment.yaml`
 
@@ -238,9 +262,9 @@ Antes de mover, compactar ou apagar qualquer artefato:
 - Trello deve controlar tarefas e decisoes pendentes.
 - Nenhum dos dois deve ser fonte primaria dos dados brutos.
 
-## Regra de bloqueio
+## Regra de bloqueio historica
 
-Enquanto o Kinect RGB-D nao estiver estavel, manter bloqueados:
+Esta regra valeu durante a frente Kinect. Enquanto o Kinect RGB-D nao estiver estavel, manter bloqueados:
 
 - `odom_test` como validacao de VO;
 - RTAB-Map;
@@ -249,4 +273,6 @@ Enquanto o Kinect RGB-D nao estiver estavel, manter bloqueados:
 
 Falhas como `RGB_TIMEOUT`, `KINECT_OPEN_FAIL`, `USB_BUSY` ou `USB_MISSING` devem
 ser classificadas como frente Kinect/USB/libfreenect/driver ate que haja
-evidencia repetivel em contrario.
+evidencia repetivel em contrario. A partir do checkpoint 2026-05-10, a regra
+pratica e: se RGB-D, IMU e TF estatico passam, seguir para VO/RTAB-Map; se
+falharem, abrir nova rodada Kinect como regressao com run bundle proprio.

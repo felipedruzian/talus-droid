@@ -8,6 +8,18 @@ Este repositório representa o estado **mínimo restaurado e validado** do ambie
 
 O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a base tambem foi reorganizada em pacotes ROS 2 (`talus_base` e `talus_bringup`) com um contrato serial novo e unico entre Raspberry Pi e Arduino Nano, um bringup em camadas para testes de chao e um filtro de IMU no padrao ROS.
 
+
+## Hosts e caminhos canonicos
+
+| Host | Caminho | Uso |
+|---|---|---|
+| `talus` | `/home/felip/repos/talus-droid` | repo canonico Git, documentacao, commits e analise |
+| `raspi` | `/home/felip/talus-droid` | runtime oficial ROS/hardware do robo |
+| `raspi` | `/home/felip/ros2_ws` | legado; nao usar para novos testes |
+| `talus` | `/home/felip/repos/_worktrees/talus-droid/<slug>` | worktrees opcionais para mudancas isoladas |
+
+Regra curta: teste de hardware roda no `raspi` em `/home/felip/talus-droid`; documentacao e commits ficam no `talus` em `/home/felip/repos/talus-droid`.
+
 ## Baseline restaurado e gate atual
 
 No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado com sucesso:
@@ -25,7 +37,7 @@ No Raspberry Pi com **Ubuntu Server 24.04 LTS** e **ROS 2 Jazzy**, foi validado 
   - LED
 - `kinect_ros2_node` também executando e publicando tópicos unificados
 
-Nota de checkpoint: a frente atual reabriu a validação do Kinect RGB-D antes de continuar VO/SLAM. Em 2026-05-02, a matriz Kinect-only mostrou `depth` estável enquanto RGB/video falha ou não entrega frames reais em `libfreenect`/ROS Kinect-only; por isso `odom_test`, VO e RTAB-Map seguem bloqueados até a cadeia RGB-D ficar estável.
+Nota de checkpoint 2026-05-10: a frente `kinect-validation` foi encerrada como bloqueio principal apos corrigir o GND incorreto entre Arduino/Raspberry Pi. As hipoteses USB/libfreenect/VL805/xHCI ficaram rebaixadas sem nova evidencia. RGB-D simultaneo, TF estatico, IMU e VO curta no chao foram destravados; a odometria de rodas continua fora do pipeline porque o Hall/encoder esquerdo esta incompleto.
 
 ## Hardware usado
 
@@ -37,7 +49,7 @@ Nota de checkpoint: a frente atual reabriu a validação do Kinect RGB-D antes d
 ## Estrutura relevante
 
 ```text
-~/talus-droid
+/home/felip/talus-droid   # runtime no raspi
 ├── src/
 │   ├── talus_base/
 │   ├── talus_bringup/
@@ -63,6 +75,8 @@ Relatorios recentes desta frente:
 - [2026-04-08-kinect-rtabmap-smoke.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-kinect-rtabmap-smoke.md)
 - [2026-04-08-odom-kinect-rtabmap-round2.md](/home/felip/repos/talus-droid/docs/reports/2026-04-08-odom-kinect-rtabmap-round2.md)
 - [2026-04-27-kinect-validation.md](/home/felip/repos/talus-droid/docs/reports/2026-04-27-kinect-validation.md)
+- [2026-05-10-motor-validation.md](/home/felip/repos/talus-droid/docs/reports/2026-05-10-motor-validation.md)
+- [2026-05-10-vo-floor-validation.md](/home/felip/repos/talus-droid/docs/reports/2026-05-10-vo-floor-validation.md)
 
 Trilha viva da frente atual:
 

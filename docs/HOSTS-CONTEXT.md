@@ -6,6 +6,21 @@ Nao usar este arquivo para roadmap do projeto. Ele deve registrar apenas fatos o
 
 ## Hosts
 
+### Referencia rapida de caminhos por host
+
+Use esta tabela para evitar confundir fonte canonica, runtime e artefatos:
+
+| Host | Caminho | Papel | Observacao |
+|---|---|---|---|
+| `talus` | `/home/felip/repos/talus-droid` | repo canonico Git, documentacao, relatorios e analise | commits e PRs devem partir daqui; nao e runtime de hardware |
+| `raspi` | `/home/felip/talus-droid` | workspace oficial de execucao ROS/hardware | Kinect, Arduino, motores, IMU, joystick, RTAB-Map e artefatos nascem aqui |
+| `raspi` | `/home/felip/ros2_ws` | legado | nao usar para novos testes |
+| `talus` | `/home/felip/repos/_worktrees/talus-droid/<slug>` | worktrees opcionais para codigo/docs/config isolados | nao substitui o runtime do `raspi` |
+| `aiquitude` | `/home/felip/repos/talus-droid` quando existir checkout local | apoio com GUI, revisao e visualizacao | usar para `rqt`, RViz2, Foxglove/PlotJuggler quando necessario |
+
+Regra operacional: comandos ROS que acessam hardware real rodam no `raspi` em `/home/felip/talus-droid`; documentacao e commits rodam no `talus` em `/home/felip/repos/talus-droid`. Artefatos gerados no `raspi` devem ser sincronizados para o repo canonico sob `artifacts/testlogs/...` antes de atualizar relatorios.
+
+
 ## Nota de nomenclatura
 
 O nome "Talus" tem dois usos historicos que podem causar confusao:
@@ -21,7 +36,7 @@ Manter o nome atual por enquanto. Se a ambiguidade continuar atrapalhando, opcoe
 
 - host observado: `aiquitude`
 - sistema: Linux Mint 22.3
-- repositorio local observado: `/home/felip/repos/talus-droid`
+- repositorio local observado: `/home/felip/repos/talus-droid` quando houver checkout local
 - papel: SSH, revisao, consumo remoto de topicos ROS e visualizacao
 - ROS 2 Jazzy instalado
 - `rviz2` e `rqt` disponiveis
@@ -30,8 +45,9 @@ Manter o nome atual por enquanto. Se a ambiguidade continuar atrapalhando, opcoe
 
 - papel: host principal de desenvolvimento na LAN
 - IP observado: `192.168.1.69`
-- caminho esperado do repo: `/home/felip/repos/talus-droid`
+- caminho esperado do repo canonico: `/home/felip/repos/talus-droid`
 - deve ser preferido para sessoes de desenvolvimento sem dependencia direta de hardware
+- worktrees isoladas devem ficar em `/home/felip/repos/_worktrees/talus-droid/<slug>` quando houver alteracao de codigo/config/documentacao fora da branch atual
 
 ### `raspi`
 
@@ -39,7 +55,8 @@ Manter o nome atual por enquanto. Se a ambiguidade continuar atrapalhando, opcoe
 - sistema: Ubuntu Server 24.04
 - IP observado: `192.168.1.19`
 - workspace oficial confirmado: `/home/felip/talus-droid`
-- executa joystick, bridge serial, Kinect e RTAB-Map
+- este e o unico runtime oficial para testes reais de hardware; nao confundir com `/home/felip/repos/talus-droid` no `talus`
+- executa joystick, bridge serial, Kinect, motores, IMU e RTAB-Map
 - `arduino-cli` disponivel em `/home/felip/.local/bin/arduino-cli`
 - `colcon` disponivel no ambiente ROS
 - `~/.bashrc` ja carrega `source /opt/ros/jazzy/setup.bash`, `ROS_DOMAIN_ID=42`, `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp` e `PATH="$HOME/.local/bin:$PATH"`
@@ -51,7 +68,7 @@ Manter o nome atual por enquanto. Se a ambiguidade continuar atrapalhando, opcoe
   - `RMW_IMPLEMENTATION=rmw_cyclonedds_cpp`
 - esses exports ja foram adicionados aos `.bashrc` dos hosts
 - `~/ros2_ws` deve ser tratado apenas como legado
-- `~/talus-droid/install/setup.bash` no `raspi` expoe os pacotes validados do Kinect e da base
+- `/home/felip/talus-droid/install/setup.bash` no `raspi` expoe os pacotes validados do Kinect e da base
 - `~/talus-droid/src/KinectV1-Ros2` no `raspi` ja e copia real do repositorio, nao symlink
 
 Pacotes confirmados no overlay do `raspi`:
@@ -80,7 +97,9 @@ Pacotes confirmados no overlay do `raspi`:
 - o pipeline headless `base + IMU + Kinect + RTAB-Map` ja subiu com sucesso no `raspi`
 - o `odom_test` ja foi validado como smoke test de odometria visual headless
 
-Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como baseline historico, mas a frente atual voltou para a camada Kinect porque RGB-D simultaneo ficou instavel. A matriz Kinect-only (`raspi-v17-kinect-method-matrix`) mostrou depth OK e RGB/video falhando abaixo ou antes do VO, inclusive com perda no `libfreenect`; `odom_test`, VO e RTAB-Map nao devem ser tratados como liberados ate a cadeia RGB-D voltar a passar de forma repetivel.
+Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como baseline historico, mas a frente voltou temporariamente para a camada Kinect porque RGB-D simultaneo ficou instavel. A matriz Kinect-only (`raspi-v17-kinect-method-matrix`) mostrou depth OK e RGB/video falhando abaixo ou antes do VO, inclusive com perda no `libfreenect`.
+
+Checkpoint em 2026-05-10: a frente `kinect-validation` foi encerrada como bloqueio principal apos corrigir o jumper de GND que estava no pino fisico `10` (`GPIO15/RXD0`) em vez de GND real. As hipoteses USB/libfreenect/VL805/xHCI ficam rebaixadas sem nova evidencia. RGB-D simultaneo, TF estatico, IMU e VO curta no chao foram destravados; ver `docs/reports/2026-04-27-kinect-validation.md` e `docs/reports/2026-05-10-vo-floor-validation.md`.
 
 ## Transporte de imagem
 
@@ -118,7 +137,7 @@ Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como ba
   - `BEEP <pattern_id>`
   - `ERR <code> <detail>`
 - buzzer do Nano ligado em `D11`
-- encoder esquerdo apresentou comportamento suspeito nos testes anteriores e nao deve ser tratado como bloqueador desta fase
+- o Hall/encoder esquerdo esta incompleto; `ENC`/wheel odom nao deve ser usado como insumo de VO ate manutencao posterior
 - a IMU crua sai em `/imu/raw` e `/imu/data_raw`
 - a IMU filtrada alvo do bringup sai em `/imu/data`
 - os frames estaticos agora ficam centralizados em `src/talus_bringup/config/frames.yaml`
@@ -143,8 +162,8 @@ Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como ba
 - o bringup atual privilegia `kinect_ros2_node` com point cloud desligada por patch/CLI; o modo modular ficou apenas experimental
 - o modo `modular` falhou em hardware real com `LIBUSB_ERROR_BUSY`, entao o caminho operacional atual e o driver unificado
 - o helper `scripts/apply-kinect-patches` e parte do fluxo de preparacao do fork no `raspi`
-- a frente Kinect esta em modo `kinect-validation`: falha no preflight bloqueia VO/SLAM, mas e um resultado valido quando o objetivo da run e diagnosticar Kinect/USB/libfreenect/driver
-- a matriz Kinect-only `raspi-v17-kinect-method-matrix` reforcou que a falha atual antecede o RTAB-Map: depth publica, mas RGB/video falha em `libfreenect`/ROS Kinect-only
+- a frente `kinect-validation` foi fechada em 2026-05-10 apos correcao do GND incorreto; novas falhas Kinect devem ser tratadas como regressao ou nova hipotese, nao como bloqueio ja assumido
+- a matriz Kinect-only `raspi-v17-kinect-method-matrix` permanece como historico diagnostico, mas nao representa mais a causa operacional dominante apos a correcao do GND
 - o perfil `slam` nao deve ser tratado como bringup completo sozinho; a referencia operacional atual e subir `floor_test` e depois `slam`
 - o `odom_test` sem `rgbd_sync` ficou mais estavel que a variante com `rgbd_sync=true` nos testes preliminares
 - houve teste preliminar com inscricoes em `/image_raw/compressed` e `/depth/image_raw/zstd`
@@ -152,7 +171,7 @@ Nota de checkpoint em 2026-05-02: essas validacoes continuam registradas como ba
   - warnings de `Did not receive data since 5 seconds`
   - indicios de problemas de sincronizacao
   - spam de `VWDictionary.cpp::addWordRef()`
-- os dois relatorios atuais da frente Kinect/RTAB-Map ficam em `docs/reports/2026-04-08-kinect-rtabmap-smoke.md` e `docs/reports/2026-04-08-odom-kinect-rtabmap-round2.md`
+- os relatorios atuais relevantes ficam em `docs/reports/2026-04-27-kinect-validation.md`, `docs/reports/2026-05-10-motor-validation.md` e `docs/reports/2026-05-10-vo-floor-validation.md`
 
 ## Rede observada no `raspi`
 
