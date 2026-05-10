@@ -11,3 +11,5 @@ artifacts/
 docs/superpowers/
 thoughts/
 SESSION-HANDOFF.md
+.opencode/
+.pytest_cache/

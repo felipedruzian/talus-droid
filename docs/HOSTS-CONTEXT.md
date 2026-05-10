@@ -18,7 +18,7 @@ Use esta tabela para evitar confundir fonte canonica, runtime e artefatos:
 | `talus` | `/home/felip/repos/_worktrees/talus-droid/<slug>` | worktrees opcionais para codigo/docs/config isolados | nao substitui o runtime do `raspi` |
 | `aiquitude` | `/home/felip/repos/talus-droid` quando existir checkout local | apoio com GUI, revisao e visualizacao | usar para `rqt`, RViz2, Foxglove/PlotJuggler quando necessario |
 
-Regra operacional: comandos ROS que acessam hardware real rodam no `raspi` em `/home/felip/talus-droid`; documentacao e commits rodam no `talus` em `/home/felip/repos/talus-droid`. Artefatos gerados no `raspi` devem ser sincronizados para o repo canonico sob `artifacts/testlogs/...` antes de atualizar relatorios.
+Regra operacional: comandos ROS que acessam hardware real rodam no `raspi` em `/home/felip/talus-droid`; documentacao e commits rodam no `talus` em `/home/felip/repos/talus-droid`. Como `artifacts/` e ignorado pelo Git, artefatos gerados no `raspi` devem ser sincronizados por `rsync` para o repo canonico sob `artifacts/testlogs/...` antes de qualquer analise, relatorio, fechamento de rodada ou troca de branch/worktree. Apos o sync, validar com `rsync -ani --delete` ate a comparacao sair vazia.
 
 
 ## Nota de nomenclatura

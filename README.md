@@ -18,7 +18,7 @@ O stack antigo de serial e teleop ja foi validado em hardware. Nesta branch, a b
 | `raspi` | `/home/felip/ros2_ws` | legado; nao usar para novos testes |
 | `talus` | `/home/felip/repos/_worktrees/talus-droid/<slug>` | worktrees opcionais para mudancas isoladas |
 
-Regra curta: teste de hardware roda no `raspi` em `/home/felip/talus-droid`; documentacao e commits ficam no `talus` em `/home/felip/repos/talus-droid`.
+Regra curta: teste de hardware roda no `raspi` em `/home/felip/talus-droid`; documentacao e commits ficam no `talus` em `/home/felip/repos/talus-droid`. Como `artifacts/` e ignorado pelo Git, todo fim de rodada deve sincronizar `raspi:/home/felip/talus-droid/artifacts/testlogs/...` para `/home/felip/repos/talus-droid/artifacts/testlogs/...` no `talus` com `rsync`, e validar com `rsync -ani --delete`.
 
 ## Baseline restaurado e gate atual
 

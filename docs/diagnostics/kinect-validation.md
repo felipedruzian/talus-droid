@@ -11,7 +11,7 @@ Validate Kinect v1 bring-up independently from IMU, visual odometry, and RTAB-Ma
 
 This diagnostic flow is part of the Talus-Droid robot platform. Optional build/test support may run on the Talus host, but real Kinect hardware validation remains `raspi`-only.
 
-Current gate as of 2026-05-02: validate Kinect RGB-D stability before any `odom_test`, RTAB-Map, VO, or SLAM conclusion. If `preflight` fails with `RGB_TIMEOUT`, `KINECT_OPEN_FAIL`, `USB_BUSY`, or `USB_MISSING`, keep the work in Kinect/USB/libfreenect/driver diagnostics and do not continue to VO/SLAM.
+Checkpoint 2026-05-10: this Kinect diagnostic flow is now historical/regression support, not the active blocker. The main RGB-D blocker was closed after correcting the Arduino/Raspberry Pi GND jumper that had been placed on Raspberry Pi physical pin `10` (`GPIO15/RXD0`) instead of a real GND pin. If RGB-D regresses, use this procedure again and capture a new run bundle; otherwise continue with VO/RTAB-Map validation.
 
 ## Preflight definition
 
@@ -83,7 +83,7 @@ Initial criterion:
 
 - ideal: 10/10 `PASS`
 - acceptable to consider controlled investigation of higher layers: at least 8/10 `PASS`
-- below 8/10: continue focusing on USB/driver/cleanup, not SLAM
+- below 8/10: treat as a new Kinect regression and investigate wiring/power/cleanup/USB/driver before SLAM
 
 ## Phase 2: Settle matrix
 
@@ -151,4 +151,4 @@ For Kinect-focused diagnostics, distinguish these layers before attributing fail
 4. Talus wrapper Kinect-only: `./scripts/talus-up kinect`.
 5. Operational restoration path: `talus-bringup.service` / `floor_test`.
 
-Current observation from `raspi-v17-kinect-method-matrix`: with 120s settle between Kinect-only methods, ROS methods opened and started video/depth successfully, but `/image_raw` timed out `5/5` while `/depth/image_raw` was `5/5 OK`. Native `freenect-camtest` also showed depth frames with persistent video stream packet loss. Treat this as Kinect RGB/video-chain investigation, not RTAB-Map failure.
+Historical observation from `raspi-v17-kinect-method-matrix`: with 120s settle between Kinect-only methods, ROS methods opened and started video/depth successfully, but `/image_raw` timed out `5/5` while `/depth/image_raw` was `5/5 OK`. Native `freenect-camtest` also showed depth frames with persistent video stream packet loss. This remains useful diagnostic evidence, but after the 2026-05-10 GND correction it should not be treated as the current operational root cause without reproducing the regression.

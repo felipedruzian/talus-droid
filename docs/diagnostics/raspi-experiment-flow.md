@@ -100,6 +100,46 @@ Exemplos:
   continuo de `/rtabmap/odom`, `odom -> base_link`, `map -> odom` e
   `map -> base_link`.
 
+
+## Sincronizacao obrigatoria de artefatos
+
+`artifacts/` e ignorado pelo Git. Portanto, depois de qualquer rodada real no
+`raspi` — teste, validacao, debug, troca de branch/worktree ou fechamento de
+sessao — sincronizar explicitamente os artefatos para o repo canonico no `talus`.
+Isso e obrigatorio porque os agentes normalmente analisam e documentam a partir
+do `talus`, enquanto os logs e bancos nascem no `raspi`.
+
+Fluxo padrao, a partir do `talus`:
+
+```bash
+rsync -a raspi:/home/felip/talus-droid/artifacts/testlogs/<YYYY-MM-DD-frente>/ \
+  /home/felip/repos/talus-droid/artifacts/testlogs/<YYYY-MM-DD-frente>/
+```
+
+Verificacao recomendada depois do sync:
+
+```bash
+rsync -ani --delete raspi:/home/felip/talus-droid/artifacts/testlogs/<YYYY-MM-DD-frente>/ \
+  /home/felip/repos/talus-droid/artifacts/testlogs/<YYYY-MM-DD-frente>/
+```
+
+A verificacao deve sair vazia. Se listar arquivos, ainda ha divergencia entre o
+runtime do `raspi` e a copia canonica usada pelos agentes no `talus`.
+
+Quando houver duvida sobre qual lado esta mais recente, tratar o `raspi` como
+fonte primaria dos artefatos brutos da rodada, porque e nele que ROS, Kinect,
+Arduino, RTAB-Map e os bancos `.db` executaram. O `talus` e a copia canonica para
+analise, relatorios e commits.
+
+Antes de atualizar relatorios ou declarar conclusoes, checar:
+
+1. artefatos da rodada existem no `raspi`;
+2. `rsync -a raspi:... talus:...` foi executado;
+3. `rsync -ani --delete raspi:... talus:...` saiu vazio;
+4. o relatorio aponta para o caminho `artifacts/testlogs/...` correto;
+5. se houve troca de branch/worktree, `git status --short --branch` foi registrado
+   nos hosts relevantes.
+
 ## `experiment.yaml`
 
 O `experiment.yaml` registra o contexto estruturado da rodada. Ele deve ser
